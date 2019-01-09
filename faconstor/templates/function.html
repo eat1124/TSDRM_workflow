@@ -1,0 +1,157 @@
+ {% extends "base1.html" %}
+
+
+
+{% block content %}
+
+
+        <div style="height:10px"></div>
+        <div  class="portlet-body">
+            <div class="row">
+                <div id="tree_2" class="col-md-4 tree-demo"> </div>
+                <div  class="col-md-8" >
+                    <div id="formdiv"  class="portlet light bordered" {{hiddendiv}}>
+                        {% if errors %}
+                            {% for error in errors %}
+                            <div ID="error" class="alert alert-danger ">{{ error }}</div>
+                            <span> {% endfor %}</span>
+                    {% endif %}
+                        <div class="portlet-title" >
+                            <div class="caption font-green-sharp" >
+                                <label id="title"  class="caption-subject bold uppercase" >{{title}}</label>
+                            </div>
+                        </div>
+                        <div  class="portlet-body form" >
+                            <form action="#" class="form-horizontal" method="post">{% csrf_token %}
+                                <div class="form-body"  >
+                                    <div class="form-group form-md-line-input  has-success"  style="margin-top:-20px">
+                                        <label class="col-md-2 control-label"  >父节点</label>
+                                        <div class="col-md-10">
+                                            <input type="text"  hidden id="id" name="id" value="{{id}}" >
+                                            <input type="text" hidden  id="pid" name="pid"  value="{{pid}}">
+                                            <input readonly type="text" class="form-control" id="pname" name="pname" placeholder="父节点"  value="{{pname}}">
+                                            <div class="form-control-focus"> </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-md-line-input has-success"  >
+                                        <label class="col-md-2 control-label"  >功能名称</label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control" id="name" name="name" value="{{name}}"  placeholder="功能名称">
+                                            <div class="form-control-focus"> </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-md-line-input has-success">
+                                        <label class="col-md-2 control-label"  >类型</label>
+                                        <div class="col-md-10">
+                                            <div class="md-radio-inline">
+                                                <input type="text" hidden   id="mytype"  value="{{mytype}}" >
+                                                <div class="md-radio">
+                                                    <input type="radio" value="fun" id="fun" name="radio2" class="md-radiobtn"  checked>
+                                                    <label for="fun">
+                                                        <span></span>
+                                                        <span class="check"></span>
+                                                        <span class="box"></span> 功能 </label>
+                                                </div>
+                                                <div class="md-radio has-error">
+                                                    <input type="radio" value="node" id="node" name="radio2" class="md-radiobtn" >
+                                                    <label for="node">
+                                                        <span></span>
+                                                        <span class="check"></span>
+                                                        <span class="box"></span> 节点 </label>
+                                                </div>
+
+                                            </div>
+                                            <div class="form-control-focus"> </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-md-line-input has-success">
+                                        <label class="col-md-2 control-label"  >访问地址</label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control" id="url" name="url"   value="{{url}}" placeholder="访问地址">
+                                            <div class="form-control-focus"> </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-md-line-input has-success">
+                                        <label class="col-md-2 control-label"  >图标</label>
+                                        <div class="col-md-10">
+                                            <input type="text" class="form-control" id="icon" name="icon"   value="{{icon}}" placeholder="图标">
+                                            <div class="form-control-focus"> </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                                <div class="form-actions noborder"  style="margin-top:-30px;text-align:center">
+                                    <button  type="submit"  id="save" name="save" class="btn blue">保存</button>
+                                </div>
+
+                            </form>
+                            <div id="static" class="modal fade" tabindex="-1" data-backdrop="static" data-keyboard="false">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                                                <h4 class="modal-title">修改密码</h4>
+                                        </div>
+                                        <div class="panel-body">
+                                            <form class="bs-example form-horizontal activate-form" id="formactivate" >{% csrf_token %}
+                                                 <div class="form-body"  >
+                                                        <div class="form-group" >
+                                                            <label class="col-md-3 control-label">新密码</label>
+                                                            <div class="col-md-9">
+                                                                <input id="password1" type="password" name="password1" class="form-control" placeholder="" value="">
+                                                                <div class="form-control-focus"> </div>
+
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group ">
+                                                            <label class="col-md-3 control-label" for="form_control_1">确认新密码</label>
+                                                            <div class="col-md-9">
+                                                                <input id="password2" type="password" name="password2" class="form-control" placeholder="" value="">
+                                                                <div class="form-control-focus"> </div>
+
+                                                            </div>
+                                                         </div>
+                                                 </div>
+                                                <div class="form-actions " >
+                                                    <div class="modal-footer">
+                                                        <button type="button" data-dismiss="modal" class="btn dark btn-outline">关闭</button>
+                                                        <button type="button" id="savepassword" name="savepassword" class="btn green">保存</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+</div>
+
+
+ {% endblock %}
+
+{% block script %}
+ <script>
+
+var treedata = {{treedata|safe}};
+
+</script>
+<link href="/static/assets/global/plugins/jquery-multi-select/css/multi-select.css" rel="stylesheet" type="text/css" />
+<link href="/static/assets/global/plugins/jstree/dist/themes/default/style.min.css" rel="stylesheet" type="text/css" />
+<link href="/static/assets/global/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
+<link href="/static/assets/global/plugins/select2/css/select2-bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+<script src="/static/assets/global/scripts/app.min.js" type="text/javascript"></script>
+<script src="/static/assets/global/plugins/jstree/dist/jstree.min.js" type="text/javascript"></script>
+<script src="/static/assets/global/plugins/jquery-multi-select/js/jquery.multi-select.js" type="text/javascript"></script>
+<script src="/static/assets/global/plugins/jquery-multi-select/js/jquery.quicksearch.js" type="text/javascript"></script>
+<script src="/static/assets/global/plugins/select2/js/select2.full.min.js" type="text/javascript"></script>
+<script src="/static/assets/pages/scripts/components-select2.min.js" type="text/javascript"></script>
+
+
+
+{% endblock %}

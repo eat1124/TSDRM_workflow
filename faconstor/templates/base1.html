@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en" class="app">
+<head>
+    <meta charset="utf-8"/>
+    <title>
+        {% if homepage %}
+            自动化灾难恢复管理平台
+        {% else %}
+            {% for  fun in pagefuns.pagefuns %}
+                {% if fun.isselected %}
+                    {% if not fun.child %}
+                        {{ fun.name }}
+                    {% else %}
+                        {% for  fun1 in fun.child %}
+                            {% if fun1.isselected %}
+                                {% if not fun1.child %}
+                                    {{ fun1.name }}
+                                {% else %}
+                                    {% for  fun2 in fun1.child %}
+                                        {% if fun2.isselected %}
+                                            {{ fun2.name }}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+    </title>
+    <meta name="description"
+          content="app, web app, responsive, admin dashboard, admin, flat, flat ui, ui kit, off screen nav"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+    <link rel="stylesheet" href="/static/new/css/bootstrap.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/new/css/animate.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/new/css/font-awesome.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/new/css/icon.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/new/css/font.css" type="text/css"/>
+    <link rel="stylesheet" href="/static/new/css/app.css" type="text/css"/>
+    <link href="/static/assets/global/css/components.css" rel="stylesheet" id="style_components" type="text/css"/>
+    <!--[if lt IE 9]>
+    <script src="/static/new/js/ie/html5shiv.js"></script>
+    <script src="/static/new/js/ie/respond.min.js"></script>
+    <script src="/static/new/js/ie/excanvas.js"></script>
+    <![endif]-->
+</head>
+<body class="">
+<section class="vbox">
+    <header class="bg-white header header-md navbar navbar-fixed-top-xs box-shadow">
+        <div class="navbar-header ">
+            <a class="btn btn-link visible-xs" data-toggle="class:nav-off-screen" data-target="#nav">
+                <i class="fa fa-bars"></i>
+            </a>
+            <a href="/index" class="navbar-brand">
+                <img src="/static/new/images/cloud-logo1.png" class="m-r-sm" alt="scale">
+                <span class="hidden-nav-xs">自动化灾难恢复管理平台TSDRM</span>
+            </a>
+            <a class="btn btn-link visible-xs" data-toggle="dropdown" data-target=".user">
+                <i class="fa fa-cog"></i>
+            </a>
+            <input type="text" value="" id="load_tasks_tag" name="load_tasks_tag" hidden>
+        </div>
+        <div class="top-menu">
+            <ul class="nav navbar-nav pull-right">
+                <!-- BEGIN NOTIFICATION DROPDOWN -->
+                <!-- DOC: Apply "dropdown-dark" class after below "dropdown-extended" to change the dropdown styte -->
+                <li class="dropdown dropdown-extended dropdown-notification" id="header_notification_bar">
+                    <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"
+                       data-hover="dropdown"
+                       data-close-others="true">
+                        <i id="dropdown_task_nums" style="font-size:18px" class="fa fa-bell-o"></i>
+                        {% if pagefuns.task_nums > 0 %}
+                            <span class="badge badge-default" id="task_nums"
+                                  style="background-color: #36c6d3"> {{ pagefuns.task_nums }} </span>
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu">
+
+                        <li>
+                            <div class="scroller" style="height: 620px;" data-always-visible="1" data-rail-visible="0">
+                                <ul class="feeds" id="locate_task">
+                                    {% for task in pagefuns.message_task %}
+                                        <li id="{{ task.task_id }}">
+                                            <a id="a_{{ task.task_id }}" href="javascript:void(0)"
+                                               name="{{ task.pop }}">
+
+                                                <input id="tasktype" type="text" value="{{ task.task_type }}" hidden>
+                                                <input id="task_id" type="text" value="{{ task.task_id }}" hidden>
+                                                <input id="process_name" type="text" value="{{ task.process_name }}"
+                                                       hidden>
+                                                <input id="send_time" type="text" value="{{ task.send_time }}" hidden>
+                                                <input id="sign_role" type="text" value="{{ task.group_name }}" hidden>
+                                                <input id="process_run_reason" type="text"
+                                                       value="{{ task.process_run_reason }}" hidden>
+                                                <input id="task_extra" type="text"
+                                                       value="{{ task.task_extra }}" hidden>
+                                                <input id="processrunid" type="text"
+                                                       value="{{ task.processrunid }}" hidden>
+                                                <input id="address" type="text"
+                                                       value="{{ task.address }}" hidden>
+                                                <div class="col1">
+                                                    <div class="cont">
+                                                        <div class="cont-col1">
+                                                            <div class="label label-sm {{ task.task_color }}">
+                                                                <i class="{{ task.task_icon }}"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div class="cont-col2">
+                                                            <div class="desc"> <span class="label label-sm "
+                                                                                     style="background-color:{{ task.process_color }};"> {{ task.process_name }}
+                                                        </span>{{ task.content }}
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col2">
+                                                    <div class="date"> {{ task.time }}</div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </li>
+                        <li style="text-align: right" class="external">
+                            <a href="/tasksearch/">更多</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="dropdown dropdown-user">
+                    <ul class="nav navbar-nav navbar-right m-n hidden-xs nav-user user">
+
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                {{ username }} <b class="caret"></b>
+                            </a>
+                            <ul class="dropdown-menu animated fadeInRight">
+                                <li>
+                                    <span class="arrow top"></span>
+                                    <a href="/password">修改密码</a>
+                                </li>
+                                <li>
+                                    <a href="/login">重新登录</a>
+                                </li>
+
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+
+        </div>
+
+
+    </header>
+    <section>
+        <section class="hbox stretch">
+            <!-- .aside -->
+            <aside class="bg-primary aside-md hidden-print" id="nav">
+                <section class="vbox">
+                    <section class="w-f scrollable">
+                        <div class="slim-scroll" data-height="auto" data-disable-fade-out="true" data-distance="0"
+                             data-size="10px" data-railOpacity="0.2">
+
+                            <!-- nav -->
+                            <nav class="nav-primary hidden-xs ">
+                                <ul class="nav nav-main" data-ride="collapse">
+                                    {% for  fun in pagefuns.pagefuns %}
+                                        <li style="font-size:16px" class="{% if fun.isselected %}active{% endif %} ">
+                                            <a href="{{ fun.url }}" class="auto">
+                                                {% if fun.child %}
+                                                    <span class="pull-right text-muted">
+                              <i class="i i-circle-sm-o text"></i>
+                              <i class="i i-circle-sm text-active"></i>
+                            </span>
+                                                {% endif %}
+                                                <i style="font-size:16px" class="{{ fun.icon }}">
+                                                </i>
+                                                <span>{{ fun.name }} </span>
+                                            </a>
+                                            {% if fun.child %}
+                                                <ul class="nav dk">
+                                                    {% for  fun1 in fun.child %}
+                                                        <li class=" {% if fun1.isselected %}active{% endif %}">
+                                                            <a href="{{ fun1.url }}" class="auto">
+                                                                {% if fun1.child %}
+                                                                    <span class="pull-right text-muted">
+                                      <i class="i i-circle-sm-o text"></i>
+                                      <i class="i i-circle-sm text-active"></i>
+                                    </span>
+                                                                {% endif %}
+                                                                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ fun1.name }}</span>
+                                                            </a>
+                                                            {% if fun1.child %}
+                                                                <ul class="nav dk">
+                                                                    {% for  fun2 in fun1.child %}
+                                                                        <li class=" {% if fun2.isselected %}active{% endif %}">
+                                                                            <a href="{{ fun2.url }}" class="auto">
+                                                                                {% if fun2.child %}
+                                                                                    <span class="pull-right text-muted">
+                                              <i class="i i-circle-sm-o text"></i>
+                                              <i class="i i-circle-sm text-active"></i>
+                                            </span>
+                                                                                {% endif %}
+                                                                                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ fun2.name }}</span>
+                                                                            </a>
+                                                                        </li>
+                                                                    {% endfor %}
+                                                                </ul>
+                                                            {% endif %}
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </nav>
+                            <!-- / nav -->
+                        </div>
+                    </section>
+
+                    <footer class="footer hidden-xs no-padder text-center-nav-xs">
+
+                        <a href="#nav" data-toggle="class:nav-xs"
+                           class="btn btn-icon icon-muted btn-inactive m-l-xs m-r-xs">
+                            <i class="i i-circleleft text"></i>
+                            <i class="i i-circleright text-active"></i>
+                        </a>
+                    </footer>
+                </section>
+            </aside>
+            <!-- /.aside -->
+            <section id="content">
+                <section class="vbox">
+                    {% if homepage %}
+                        {% block contenthome %}{% endblock %}
+                    {% else %}
+                        <section class="scrollable wrapper">
+                            <!-- .breadcrumb -->
+                            <ul class="breadcrumb">
+                                <li><a href="/index"><i class="fa fa-home"></i> 首页</a></li>
+                                {% for  fun in pagefuns.pagefuns %}
+                                    {% if fun.isselected %}
+                                        <li>{{ fun.name }}</li>
+                                        {% if fun.child %}
+                                            {% for  fun1 in fun.child %}
+                                                {% if fun1.isselected %}
+                                                    <li>{{ fun1.name }}</li>
+                                                    {% if fun1.child %}
+                                                        {% for  fun2 in fun1.child %}
+                                                            {% if fun2.isselected %}
+                                                                <li>{{ fun2.name }}</li>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                            <section class="panel panel-default">
+                                <header class="panel-heading">
+                                    {% for  fun in pagefuns.pagefuns %}
+                                        {% if fun.isselected %}
+                                            {% if not fun.child %}
+                                                {{ fun.name }}
+                                            {% else %}
+                                                {% for  fun1 in fun.child %}
+                                                    {% if fun1.isselected %}
+                                                        {% if not fun1.child %}
+                                                            {{ fun1.name }}
+                                                        {% else %}
+                                                            {% for  fun2 in fun1.child %}
+                                                                {% if fun2.isselected %}
+                                                                    {{ fun2.name }}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </header>
+                                {% block content %}{% endblock %}
+                            </section>
+                        </section>
+                    {% endif %}
+                </section>
+                <a href="#" class="hide nav-off-screen-block" data-toggle="class:nav-off-screen" data-target="#nav"></a>
+            </section>
+        </section>
+    </section>
+</section>
+
+<div id="static_base_01" class="modal fade" tabindex="-1" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                <h4 class="modal-title">用户组签字</h4>
+            </div>
+            <div class="modal-body" style="margin-bottom:40px">
+                <div id="myTabContent1" class="tab-content">
+                    <div>
+                        <form action="#" class="bs-example form-horizontal" method="post">{% csrf_token %}
+                            <div class="form-body">
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">流程名称</label>
+                                    <div class="col-md-10 " style="padding-top:6px">
+                                        <input id="mytask" type="text" hidden>
+                                        <input type="text" id="processname" name="processname"
+                                               style="width: 458px" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">发送时间</label>
+                                    <div class="col-md-4 " style="padding-top:6px">
+                                        <input type="text" id="sendtime" name="sendtime" class="form-control" readonly>
+                                    </div>
+                                    <label class="col-md-2 control-label">签到角色</label>
+                                    <div class="col-md-4 " style="padding-top:6px">
+                                        <input type="text" id="signrole" name="signrole"
+                                               style="width:165px;" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">启动说明</label>
+                                    <div class="col-md-10">
+                                                    <textarea id="processrunreason" class="form-control" rows="3"
+                                                              name="processrunreason" readonly></textarea>
+                                        <div class="form-control-focus"></div>
+
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">签到说明</label>
+                                    <div class="col-md-10">
+                                                    <textarea id="sign_info" class="form-control"
+                                                              placeholder="最大限制2500个汉字" rows="3"
+                                                              name="sign_info"></textarea>
+                                        <div class="form-control-focus"></div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="form-actions">
+                                <div class="row" style="TEXT-ALIGN: center;">
+                                    <div class="col-md-12">
+                                        <button type="button" id="sign_save" name="sign_save"
+                                                class="btn green uppercase">签到
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<div id="static_base_02" class="modal fade" tabindex="-1" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                <h4 class="modal-title">其他任务</h4>
+            </div>
+            <div class="modal-body" style="margin-bottom:40px">
+                <div id="myTabContent1" class="tab-content">
+                    <div>
+                        <form action="#" class="bs-example form-horizontal  activate-form"
+                              method="post">{% csrf_token %}
+                            <div class="form-body">
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">流程名称</label>
+                                    <div class="col-md-10 " style="padding-top:6px">
+                                        <input id="mytask_extra" type="text" hidden>
+
+                                        <input type="text" id="processname_extra" name="processname_extra"
+                                               style="width: 458px" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">任务内容</label>
+                                    <div class="col-md-10 " style="padding-top:6px">
+                                        <input type="text" id="taskcontent_extra" name="taskcontent_extra"
+                                               style="width: 458px" class="form-control" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">地址</label>
+                                    <div class="col-md-10 " style="padding-top:6px">
+                                        <a target="_blank" href="" id="address_extra"></a>
+                                    </div>
+                                </div>
+
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">发送时间</label>
+                                    <div class="col-md-4 " style="padding-top:6px">
+                                        <input type="text" id="sendtime_extra" name="sendtime_extra"
+                                               class="form-control" readonly>
+                                    </div>
+                                    <label class="col-md-2 control-label">当前角色</label>
+                                    <div class="col-md-4 " style="padding-top:6px">
+                                        <input type="text" id="signrole_extra" name="signrole_extra"
+                                               style="width:165px;" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">启动说明</label>
+                                    <div class="col-md-10">
+                                                    <textarea id="processrunreason_extra" class="form-control" rows="3"
+                                                              name="processrunreason_extra" readonly></textarea>
+                                        <div class="form-control-focus"></div>
+
+                                    </div>
+                                </div>
+                                <div class="form-group ">
+                                    <label class="col-md-2 control-label">任务说明</label>
+                                    <div class="col-md-10">
+                                                    <textarea id="sign_info_extra" class="form-control"
+                                                              placeholder="最大限制2500个汉字" rows="3"
+                                                              name="sign_info_extra"></textarea>
+                                        <div class="form-control-focus"></div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="form-actions">
+                                <div class="row" style="TEXT-ALIGN: center;">
+                                    <div class="col-md-12">
+                                        <button type="button" class="btn green uppercase"
+                                                onclick="searchTaskClicked(this);">查看任务
+                                        </button>
+                                        <input id="processrun_id_extra" type="text" hidden>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<script src="/static/assets/global/plugins/jquery.min.js" type="text/javascript"></script>
+<script src="/static/assets/global/plugins/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+<!-- App -->
+<script src="/static/new/js/app.js"></script>
+<script src="/static/new/js/slimscroll/jquery.slimscroll.min.js"></script>
+<script src="/static/assets/global/plugins/jquery-validation/js/jquery.validate.js" type="text/javascript"></script>
+
+
+</body>
+
+<script>
+    $.ajaxSetup({
+        data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+    });
+</script>
+{% block script %}
+
+{% endblock %}
+<script src="/static/myjs{{ pagefuns.curfun.jsurl }}.js" type="text/javascript"></script>
+<script>
+    // 构造前缀
+    var href = window.location.href
+    if (href.endsWith("/")) {
+        href = href.slice(0, -1)
+    }
+    a = href.split("//");
+    var b = a[1];
+
+    var preTag = ""
+    if (b.split("/").length > 1) {
+        var num = b.split("/").length - 1
+        for (var i = 0; i < num; i++) {
+            preTag += "../"
+        }
+    }
+
+    // 单点查询任务
+    function searchTaskClicked(param) {
+        var processRunId = $(param).next().val();
+        // 存入任务说明
+        var saveTaskRemark = preTag + "save_task_remark/"
+        $.ajax({
+            type: "POST",
+            url: saveTaskRemark,
+            data: {
+                "task_id": $("#mytask_extra").val(),
+                "sign_info_extra": $("#sign_info_extra").val(),
+            },
+            success: function (data) {
+                if (data.result == 0) {
+                    alert("任务不存在，网络异常。")
+                }
+            },
+            error: function (e) {
+                alert("任务说明存入失败，请与管理员联系。");
+            }
+        });
+
+        window.location.href = '/falconstor/' + processRunId
+    }
+
+    // 定时查询任务(有流程进行中才会有任务)
+    function getTaskInfo() {
+        // 获取当前所有taskid[] 1
+        // 请求之后所有taskid[] 2
+        // 遍历1 元素不在2中的taskid,选择模态框关闭
+        var preDataArray = [];
+        $('ul#locate_task').children('li').each(function () {
+            var cTaskId = $(this).children("a").children("input:eq(1)").val()
+            preDataArray.push(cTaskId);
+        });
+
+        // 查询原本ul下li数量
+        var preLiLength = $("#locate_task li").length;
+
+        var getUrl = preTag + "reload_task_nums/"
+        // 请求到的参数：pop, task_id, process_name, send_time, group_name, process_run_reason, task_icon, content, task_color, time
+        $.ajax({
+            type: "POST",
+            url: getUrl,
+            data: {},
+            success: function (data) {
+                if (preLiLength != data.message_task.length) {
+                    $("#locate_task").empty();
+                    $("#dropdown_task_nums").siblings().empty();
+
+                    // 刷新任务数量
+                    if (data.task_nums) {
+                        var spanElements = "<span class='badge badge-default' id='task_nums' style='background-color: #36c6d3'> " +
+                            data.task_nums + "</span>"
+                        $("#dropdown_task_nums").after(spanElements)
+                    }
+
+                    var afterDataArray = []
+
+                    // 重构任务下拉
+                    for (var i = 0; i < data.message_task.length; i++) {
+                        c_message_task = data.message_task[i]
+
+                        afterDataArray.push(c_message_task.task_id);
+
+                        var liElement = "<li id='" + c_message_task.task_id + "'>"
+                        var aElement = "<a href='javascript:void(0)' id='a_" + c_message_task.task_id + "' name='" + c_message_task.pop + "'>"
+                        var inputElement = "<input id='tasktype' type='text' value='" + c_message_task.task_type + "' hidden>\n" +
+                            "            <input id='task_id' type='text' value='" + c_message_task.task_id + "' hidden>\n" +
+                            "            <input id='process_name' type='text' value='" + c_message_task.process_name + "' hidden>\n" +
+                            "            <input id='send_time' type='text' value='" + c_message_task.send_time + "' hidden>\n" +
+                            "            <input id='sign_role' type='text' value='" + c_message_task.group_name + "' hidden>\n" +
+                            "            <input id='process_run_reason' type='text' value='" + c_message_task.process_run_reason + "' hidden>" +
+                            "            <input id='task_extra' type='text' value='" + c_message_task.task_extra + "' hidden>" +
+                            "            <input id='processrunid' type='text' value='" + c_message_task.processrunid + "' hidden>" +
+                            "            <input id='address' type='text' value='" + c_message_task.address + "' hidden>"
+
+                        var divElement = "<div class='col1'><div class='cont'><div class='cont-col1'><div class='label label-sm " +
+                            c_message_task.task_color + "'><i class='" + c_message_task.task_icon + "'></i></div></div><div class='cont-col2'><div class='desc'> <span class='label label-sm ' style='background-color:" +
+                            c_message_task.process_color + ";'> " + c_message_task.process_name + "</span>" + c_message_task.content +
+                            "</div></div></div></div><div class='col2'><div class='date'>" + c_message_task.time + "</div></div></a></li>"
+
+                        var linkedElement = liElement + aElement + inputElement + divElement
+                        $("#locate_task").append(linkedElement);
+                    }
+
+                    // 任务自动弹框
+                    // 判断请求前与请求后任务数量是否增多，如增多，选择最后一个task_id任务弹出模态框
+                    cLiLength = $("#locate_task li").length;
+                    if (cLiLength > preLiLength) {
+                        var cLi = $("#locate_task li").first();
+                        // 获取li下a标签的data-target属性，弹出模态框
+                        var popTag = cLi.children("a:eq(0)").prop("name");
+                        var cLiId = cLi.children("a:eq(0)").prop("id");
+                        var taskType = cLi.children("a:eq(0)").children("a:eq(0)").val();
+                        // falconstorswitch页面不弹签字任务
+                        var reg = RegExp("/falconstorswitch/(\\d+)");
+                        if (reg.test(b) != true && taskType != "SIGN") {
+                            if (popTag.toUpperCase() == "TRUE") {
+                                $("#static_base_01").modal({backdrop: "static"});
+                            } else {
+                                $("#static_base_02").modal({backdrop: "static"});
+                            }
+                        }
+
+                        $("#mytask").val($("#a".replace("a", cLiId)).find("input#task_id").val());
+                        $("#processname").val($("#a".replace("a", cLiId)).find("input#process_name").val());
+                        $("#sendtime").val($("#a".replace("a", cLiId)).find("input#send_time").val());
+                        $("#signrole").val($("#a".replace("a", cLiId)).find("input#sign_role").val());
+                        $("#processrunreason").val($("#a".replace("a", cLiId)).find("input#process_run_reason").val());
+
+                        $("#mytask_extra").val($("#a".replace("a", cLiId)).find("input#task_id").val());
+                        $("#processname_extra").val($("#a".replace("a", cLiId)).find("input#process_name").val());
+                        $("#taskcontent_extra").val($("#a".replace("a", cLiId)).find("input#task_extra").val());
+                        $("#sendtime_extra").val($("#a".replace("a", cLiId)).find("input#send_time").val());
+                        $("#signrole_extra").val($("#a".replace("a", cLiId)).find("input#sign_role").val());
+                        $("#processrunreason_extra").val($("#a".replace("a", cLiId)).find("input#process_run_reason").val());
+                        $("#processrun_id_extra").val($("#a".replace("a", cLiId)).find("input#processrunid").val());
+
+                        // 展示灾备地址
+                        var addressExtra = $("#a".replace("a", cLiId)).find("input#address").val();
+                        if (addressExtra) {
+                            $("#address_extra").prop("href", addressExtra).text(addressExtra);
+                        } else {
+                            $("#address_extra").parent().parent().hide();
+                        }
+
+
+                    } else if (cLiLength < preLiLength) {
+                        for (var i = 0; i < preDataArray.length; i++) {
+                            var cParam = parseInt(preDataArray[i])
+                            var cVerify = $.inArray(cParam, afterDataArray)
+                            if (cVerify === -1) {
+                                //隐藏指定模态框
+                                // 获取当前模态框
+                                var myTaskModel = $("#static_base_01").find("input#mytask").val();
+                                if (myTaskModel == preDataArray[i]) {
+                                    $("#static_base_01").modal("hide");
+                                }
+                                var myTaskExtraModel = $("#static_base_02").find("input#mytask_extra").val();
+                                if (myTaskExtraModel == preDataArray[i]) {
+                                    $("#static_base_02").modal("hide");
+                                }
+                            }
+                        }
+
+                    }
+                }
+            },
+        });
+    }
+
+    //var loadTasksTag = $("#load_tasks_tag").val();
+    // if (loadTasksTag == 1) {
+    var my_t = window.setInterval(getTaskInfo, 6000);
+    //}
+    //else {
+    //    window.clearInterval(my_t)
+    //}
+
+
+    // 任务信息写入模态框
+    $("ul#locate_task").on("click", " li", function () {
+        var popTag = $(this).children("a:eq(0)").prop("name");
+        if (popTag.toUpperCase() == "TRUE") {
+            $("#static_base_01").modal({backdrop: "static"});
+        } else {
+            $("#static_base_02").modal({backdrop: "static"});
+        }
+        var task_id = $(this).attr("id");
+        $("#mytask").val($("#a".replace("a", task_id)).find("input#task_id").val());
+        $("#processname").val($("#a".replace("a", task_id)).find("input#process_name").val());
+        $("#sendtime").val($("#a".replace("a", task_id)).find("input#send_time").val());
+        $("#signrole").val($("#a".replace("a", task_id)).find("input#sign_role").val());
+        $("#processrunreason").val($("#a".replace("a", task_id)).find("input#process_run_reason").val());
+
+        $("#mytask_extra").val($("#a".replace("a", task_id)).find("input#task_id").val());
+        $("#processname_extra").val($("#a".replace("a", task_id)).find("input#process_name").val());
+        $("#taskcontent_extra").val($("#a".replace("a", task_id)).find("input#task_extra").val());
+        $("#sendtime_extra").val($("#a".replace("a", task_id)).find("input#send_time").val());
+        $("#signrole_extra").val($("#a".replace("a", task_id)).find("input#sign_role").val());
+        $("#processrunreason_extra").val($("#a".replace("a", task_id)).find("input#process_run_reason").val());
+        $("#processrun_id_extra").val($("#a".replace("a", task_id)).find("input#processrunid").val());
+        // 展示灾备地址
+        var addressExtra = $("#a".replace("a", task_id)).find("input#address").val();
+        if (addressExtra) {
+            $("#address_extra").prop("href", addressExtra).text(addressExtra);
+        } else {
+            $("#address_extra").parent().parent().hide();
+        }
+    });
+
+
+    // 签到
+    $("#sign_save").click(function () {
+        var signUrl = preTag + "processsignsave/"
+        $.ajax({
+            type: "POST",
+            url: signUrl,
+            data: {
+                "task_id": $("#mytask").val(),
+                "sign_info": $("#sign_info").val(),
+            },
+            success: function (data) {
+                if (data["res"] == "签字成功,同时启动流程。") {
+                    window.location.href = data["data"];
+                    //window.open(data["data"]);
+
+                    getTaskInfo();
+                } else {
+                    alert(data["res"]);
+                }
+                $('#static_base_01').modal('hide');
+            },
+            error: function (e) {
+                alert("流程启动失败，请于管理员联系。");
+            }
+        });
+    });
+</script>
+
+<script>
+    // 针对火狐浏览器样式不正确的修改
+    if ($(".vbox").offset().top != 0) {
+        var explorer = window.navigator.userAgent;
+        if (explorer.indexOf("Firefox") >= 0) {
+            $("header.bg-white.header.header-md.navbar.navbar-fixed-top-xs.box-shadow").css({
+                "height": "60px"
+            })
+            $("li.dropdown.dropdown-user").css({
+                "position": "relative",
+                "height": "60px"
+            })
+            $("ul.nav.navbar-nav.navbar-right.m-n.hidden-xs.nav-user.user").css({
+                "height": "60px"
+            })
+            $("li:not(#header_notification_bar).dropdown").css({
+                "position": "position",
+                "bottom": "7px"
+            })
+        }
+    }
+</script>
+
+</html>

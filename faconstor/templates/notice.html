@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" class="app">
+<head>
+    <meta charset="utf-8"/>
+    <title>
+        自动化灾备管理平台
+
+    </title>
+    <meta name="description"
+          content="app, web app, responsive, admin dashboard, admin, flat, flat ui, ui kit, off screen nav"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <style>
+    p
+    {
+        font-size:20px;
+    }
+    </style>
+
+</head>
+<body class="">
+<section class="vbox">
+    <section>
+        <section class="hbox stretch">
+            <section id="content">
+                <section class="vbox">
+                    <section class="scrollable wrapper">
+                        <!-- BEGIN CONTENT BODY -->
+                        <div class="page-content">
+                            <div class="row">
+                                <div class="col-md-8 col-md-offset-2">
+                                    <div>
+                                        <div style="text-align: center">
+                                            <h1>关于太平资产灾备演练的邀请</h1>
+                                        </div>
+                                        <br>
+                                        <p>尊敬的领导、同事：</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;您好!</p>
+                                        <p style="line-height:36px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;根据保监会《保险业信息系统灾难恢复管理指引》文件第二十九条要求，"保险机构应定期组织开展灾难恢复预案的演练工作，灾难恢复预案每年至少演练一次"。 为了提高防范灾难风险的能力，保证业务连续性要求，太平资产定于{{ process_date }}进行灾备演练。为了保证演练工作顺利进行，诚邀您的参与和协作。
+                                        </p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;演练相关事项如下：</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.演练系统</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ process_name }}</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.演练项目</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ purpose }}</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.演练时间</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ start_date }}到{{ end_date }}</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.参与人员</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ all_groups }}</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;为了更清晰查看您的职责和演练进度，请登录自动灾备管理平台，平台地址如下：</p>
+                                        <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;www.adrm.tpa</p>
+
+                                        <p style="text-align: right;">灾备演练工作组</p>
+
+                                        <p style="text-align: right;">{{ invite_time }}</p>
+
+                                    </div>
+
+                                    <div class="row">
+                                        {% for wrapper_step in wrapper_step_list %}
+                                            <div class="col-md-3 col-xs-3 col-sm-3">
+
+                                                <div class="portlet box blue">
+                                                    <div class="portlet-title" style="height: 60px">
+                                                        <div class="caption" style="font-size: 20px;">
+                                                            {{ wrapper_step.wrapper_step_name }}
+                                                            {% if wrapper_step.wrapper_step_group_name %}
+                                                                (
+                                                                {{ wrapper_step.wrapper_step_group_name }}
+                                                                ) {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="portlet-body" style="height: 300px">
+                                                        {% for wrapper_script in wrapper_step.wrapper_script_list %}
+                                                            <ul>
+                                                                (脚本){{ wrapper_script.wrapper_script_name }}
+                                                            </ul>
+                                                        {% endfor %}
+                                                        {% for wrapper_verify in wrapper_step.wrapper_verify_list %}
+                                                            <ul>
+                                                                (事项){{ wrapper_verify.wrapper_verify_name }}
+                                                            </ul>
+                                                        {% endfor %}
+                                                        <ol style="margin:5px;padding:5px;"> 
+                                                            {% for inner_step in wrapper_step.inner_step_list %}
+                                                                <li>{{ inner_step.inner_step_name }}
+                                                                    {% if inner_step.inner_step_group_name %}
+                                                                        (
+                                                                        {{ inner_step.inner_step_group_name }}
+                                                                        ){% endif %}
+                                                                    <ul>
+                                                                        {% for inner_script in inner_step.inner_script_list %}
+                                                                            <li> (脚本){{ inner_script.inner_script_name }}</li>
+                                                                        {% endfor %}
+                                                                    </ul>
+                                                                    <ul>
+                                                                        {% for inner_verify in inner_step.inner_verify_list %}
+                                                                            <li> (事项){{ inner_verify.inner_verify_name }}</li>
+                                                                        {% endfor %}
+                                                                    </ul>
+                                                                </li>
+                                                            {% endfor %}
+                                                        </ol>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                        <!-- END CONTENT BODY -->
+                    </section>
+                </section>
+            </section>
+        </section>
+    </section>
+</section>
+
+
+</body>
+
+
+</html>

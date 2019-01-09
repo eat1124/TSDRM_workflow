@@ -1,0 +1,272 @@
+{
+  "current_process_task_info": [
+    {
+      "content": "\u6b65\u9aa4node_9\u7b49\u5f85\u786e\u8ba4\uff0c\u8bf7\u5904\u7406\u3002",
+      "task_icon": "fa fa-bell-o",
+      "time": "4\u5206\u949f",
+      "task_color": "label-warning"
+    },
+    {
+      "content": "\u6b65\u9aa4node_4\u5b8c\u6210\u3002",
+      "task_icon": "fa fa-cog",
+      "time": "4\u5206\u949f",
+      "task_color": "label-success"
+    },
+    {
+      "content": "\u811a\u672c\u6d4b\u8bd5shell\u6267\u884cpython\u811a\u672c\u5b8c\u6210\u3002",
+      "task_icon": "fa fa-cog",
+      "time": "4\u5206\u949f",
+      "task_color": "label-success"
+    },
+    {
+      "content": "\u6b65\u9aa4node_3\u5b8c\u6210\u3002",
+      "task_icon": "fa fa-cog",
+      "time": "5\u5206\u949f",
+      "task_color": "label-success"
+    },
+    {
+      "content": "\u811a\u672c\u6d4b\u8bd5shell\u6267\u884cpython\u811a\u672c\u5b8c\u6210\u3002",
+      "task_icon": "fa fa-cog",
+      "time": "5\u5206\u949f",
+      "task_color": "label-success"
+    },
+    {
+      "content": "\u6b65\u9aa4\u81ea\u52a8\u4efb\u52a11\u5b8c\u6210\u3002",
+      "task_icon": "fa fa-cog",
+      "time": "5\u5206\u949f",
+      "task_color": "label-success"
+    },
+    {
+      "content": "\u811a\u672c\u6d4b\u8bd5shell\u6267\u884cpython\u811a\u672c\u5b8c\u6210\u3002",
+      "task_icon": "fa fa-cog",
+      "time": "5\u5206\u949f",
+      "task_color": "label-success"
+    },
+    {
+      "content": "\u6d41\u7a0b\u5df2\u542f\u52a8\u3002",
+      "task_icon": "fa fa-power-off",
+      "time": "6\u5206\u949f",
+      "task_color": "label-success"
+    }
+  ],
+  "process_endtime": "",
+  "process_state": "RUN",
+  "process_rto": "0\u65f606\u520621\u79d2",
+  "process_starttime": "2019-01-03 15:05:16",
+  "process_name": "\u4e3b\u6d41\u7a0b",
+  "step": [
+    {
+      "id": 141,
+      "group": "",
+      "runresult": "",
+      "name": "node_2",
+      "rto": 0,
+      "code": "\u6b65\u9aa41",
+      "starttime": "",
+      "approval": "1",
+      "explain": "",
+      "note": "",
+      "state": "",
+      "endtime": "",
+      "runid": 0,
+      "parameter": "",
+      "skip": "0",
+      "verifyitems": [],
+      "scripts": [],
+      "time": 3,
+      "children": [
+        {
+          "id": 127,
+          "group": "\u707e\u5907\u7ba1\u7406\u5458\u7ec4",
+          "runresult": null,
+          "name": "\u81ea\u52a8\u4efb\u52a11",
+          "rto": "0\u65f600\u520621\u79d2",
+          "code": "001",
+          "starttime": "2019-01-03 15:05:39",
+          "approval": "0",
+          "explain": null,
+          "note": null,
+          "state": "DONE",
+          "endtime": "2019-01-03 15:06:01",
+          "runid": 6602,
+          "parameter": null,
+          "skip": "0",
+          "verifyitems": [],
+          "scripts": [
+            {
+              "scriptrunlog": null,
+              "id": 114,
+              "runscriptid": 5156,
+              "name": "\u6d4b\u8bd5shell\u6267\u884cpython\u811a\u672c",
+              "scriptrunresult": "0",
+              "scriptexplain": "aaaaa\r\n",
+              "scriptstate": "DONE",
+              "scriptoperator": null,
+              "scriptendtime": "2019-01-03 15:06:00",
+              "code": "code1",
+              "scriptstarttime": "2019-01-03 15:05:39"
+            }
+          ],
+          "time": 1,
+          "children": [],
+          "operator": ""
+        }
+      ],
+      "operator": ""
+    },
+    {
+      "id": 139,
+      "group": "",
+      "runresult": "",
+      "name": "node_3",
+      "rto": 0,
+      "code": "\u6b65\u9aa42",
+      "starttime": "",
+      "approval": "1",
+      "explain": "",
+      "note": "",
+      "state": "",
+      "endtime": "",
+      "runid": 0,
+      "parameter": "",
+      "skip": "0",
+      "verifyitems": [],
+      "scripts": [],
+      "time": 4,
+      "children": [
+        {
+          "id": 132,
+          "group": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+          "runresult": null,
+          "name": "node_3",
+          "rto": "0\u65f600\u520621\u79d2",
+          "code": "test2",
+          "starttime": "2019-01-03 15:06:01",
+          "approval": "0",
+          "explain": null,
+          "note": null,
+          "state": "DONE",
+          "endtime": "2019-01-03 15:06:23",
+          "runid": 6603,
+          "parameter": null,
+          "skip": "0",
+          "verifyitems": [],
+          "scripts": [
+            {
+              "scriptrunlog": null,
+              "id": 124,
+              "runscriptid": 5157,
+              "name": "\u6d4b\u8bd5shell\u6267\u884cpython\u811a\u672c",
+              "scriptrunresult": "0",
+              "scriptexplain": "aaaaa\r\n",
+              "scriptstate": "DONE",
+              "scriptoperator": null,
+              "scriptendtime": "2019-01-03 15:06:23",
+              "code": "code1",
+              "scriptstarttime": "2019-01-03 15:06:02"
+            }
+          ],
+          "time": 3,
+          "children": [],
+          "operator": ""
+        },
+        {
+          "id": 133,
+          "group": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+          "runresult": null,
+          "name": "node_4",
+          "rto": "0\u65f600\u520621\u79d2",
+          "code": "test1",
+          "starttime": "2019-01-03 15:06:23",
+          "approval": "0",
+          "explain": null,
+          "note": null,
+          "state": "DONE",
+          "endtime": "2019-01-03 15:06:45",
+          "runid": 6604,
+          "parameter": null,
+          "skip": "0",
+          "verifyitems": [],
+          "scripts": [
+            {
+              "scriptrunlog": null,
+              "id": 110,
+              "runscriptid": 5158,
+              "name": "\u6d4b\u8bd5shell\u6267\u884cpython\u811a\u672c",
+              "scriptrunresult": "0",
+              "scriptexplain": "aaaaa\r\n",
+              "scriptstate": "DONE",
+              "scriptoperator": null,
+              "scriptendtime": "2019-01-03 15:06:44",
+              "code": "code1",
+              "scriptstarttime": "2019-01-03 15:06:23"
+            }
+          ],
+          "time": 3,
+          "children": [],
+          "operator": ""
+        }
+      ],
+      "operator": ""
+    },
+    {
+      "id": 158,
+      "group": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+      "runresult": null,
+      "name": "node_9",
+      "rto": "0\u65f600\u520600\u79d2",
+      "code": "\u4eba\u5de5\u4efb\u52a12",
+      "starttime": "",
+      "approval": "1",
+      "explain": null,
+      "note": null,
+      "state": "EDIT",
+      "endtime": "",
+      "runid": 6605,
+      "parameter": null,
+      "skip": "0",
+      "verifyitems": [],
+      "scripts": [],
+      "time": 3,
+      "children": [],
+      "operator": ""
+    },
+    {
+      "id": 160,
+      "group": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+      "runresult": null,
+      "name": "node_11",
+      "rto": "0\u65f600\u520600\u79d2",
+      "code": "\u4e0a\u7ea7\u811a\u672c",
+      "starttime": "",
+      "approval": "0",
+      "explain": null,
+      "note": null,
+      "state": "EDIT",
+      "endtime": "",
+      "runid": 6606,
+      "parameter": null,
+      "skip": "0",
+      "verifyitems": [],
+      "scripts": [
+        {
+          "scriptrunlog": null,
+          "id": 127,
+          "runscriptid": 5159,
+          "name": "\u6d4b\u8bd5shell\u6267\u884cpython\u811a\u672c",
+          "scriptrunresult": null,
+          "scriptexplain": null,
+          "scriptstate": "EDIT",
+          "scriptoperator": null,
+          "scriptendtime": "",
+          "code": "code1",
+          "scriptstarttime": ""
+        }
+      ],
+      "time": 4,
+      "children": [],
+      "operator": ""
+    }
+  ],
+  "process_note": null
+}

@@ -1,0 +1,186 @@
+﻿﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ process_name }}</title>
+    <link rel="stylesheet" href="/static/processindex/css/style.css">
+    <script src="/static/assets/global/plugins/jquery.min.js" type="text/javascript"></script>
+</head>
+<body>
+    <div class="logo">
+        <img style="height: 61px" src="/static/processindex/images/logo.png">
+    </div>
+    <div class="wrapper">
+        <input type="text" id="process_run_id" name="process_run_id" value="{{ processrun_id }}" hidden>
+        <input type="text" id="process_url" name="process_url" value="{{ process_url }}" hidden>
+        <input type="text" id="process_id" name="process_id" value="{{ process_id }}" hidden>
+        <input type="text" id="s_tag" name="s_tag" value="{{ s_tag }}" hidden>
+
+        {% csrf_token %}
+        <div class="head-content" style="z-index: 100">
+            <div class="header-title">
+                <h1></h1>
+                <h2></h2>
+            </div>
+
+            <div class="header-timeout" hidden>
+                <ul>
+                    <li><span>RTO</span></li>
+                    <li><em>  </em></li>
+                    <li><em>  </em></li>
+                    <li><span>0</span></li>
+                    <li><span>0</span></li>
+                    <li><em>:</em></li>
+                    <li><span>0</span></li>
+                    <li><span>0</span></li>
+                    <li><em>:</em></li>
+                    <li><span>0</span></li>
+                    <li><span>0</span></li>
+                </ul>
+            </div>
+
+        </div>
+        <div class="start_hand" hidden>
+            <div class="hand"></div>
+            <div class="shine" hidden></div>
+        </div>
+
+        <div class="end_pic" hidden>
+            <img src="/static/processindex/images/endpic.png">
+            <div class="endtext">切 换 成 功</div>
+        </div>
+
+        <div class="step-box" hidden>
+
+            <div class="box-left">
+                <div class="step-item step-left4">
+                    <div class="lbox-4" style="display: none">
+                        <div class="con-circle"></div>
+                        <div class="con-text"></div>
+                    </div>
+                </div>
+                <div class="step-item step-left3">
+                    <div class="lbox-3" style="display: none">
+                        <div class="con-circle"></div>
+                        <div class="con-text"></div>
+                    </div>
+                </div>
+                <div class="step-item step-left2">
+                    <div class="lbox-2" style="display: none">
+                        <div class="con-circle"></div>
+                        <div class="con-text"></div>
+                    </div>
+                </div>
+
+                <div class="step-item step-left1">
+                    <div class="lbox-1" style="display: none">
+                        <div class="con-circle"></div>
+                        <div class="con-text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box-center">
+                <div class="step-current">
+                    <div class="step-item">
+                        <div class="cur-item-wb">
+                            <div class="circle progress-circle" id="current-circles"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box-right">
+                <div class="step-item step-right1">
+                    <div class="rbox-1" style="display: none;">
+                        <div class="con-circle"></div>
+                        <div class="con-text"></div>
+                    </div>
+                </div>
+                <div class="step-item step-right2">
+                    <div class="rbox-2" style="display: none;">
+                        <div class="con-circle"></div>
+                        <div class="con-text"></div>
+                    </div>
+                </div>
+                <div class="step-item step-right3">
+                    <div class="rbox-3" style="display: none;">
+                        <div class="con-circle"></div>
+                        <div class="con-text"></div>
+                    </div>
+                </div>
+                <div class="step-item step-right4">
+                    <div class="rbox-4" style="display: none;">
+                        <div class="con-circle"></div>
+                        <div class="con-text"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="box-progress" hidden>
+            <div class="box-progress-container">
+                <div class="progress-left-time"></div>
+                <div class="progress-right-time"></div>
+                <div class='progress active'>
+                    <div class='progress-par bar' style='width:1%;text-align: center;'><span></span><i>0%</i></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src="/static/processindex/js/common.js"></script>
+    <script src="/static/processindex/js/circles.min.js"></script>
+
+    <script>
+        util.run();
+    </script>
+    <script>
+        $("body").dblclick(function () {
+            var process_run_id = $("#process_run_id").val();
+            window.parent.open("/processindex/" + process_run_id.toString());
+        })
+        $(".start_hand").click(function () {
+            var planProcessRunId = $("#process_run_id").val()
+            var processId = $("#process_id").val()
+            $(".shine").show()
+            // 需邀请流程启动
+            setTimeout(function () {
+                $.ajax({
+                    type: "POST",
+                    dataType: 'json',
+                    url: "../../falconstor_run_invited/",
+                    data:
+                        {
+                            processid: processId,
+                            plan_process_run_id: planProcessRunId,
+                            csrfmiddlewaretoken: csrfToken
+                        },
+                    success: function (data) {
+                        if (data["res"] === "新增成功。") {
+                            //$(".start_hand").hide();
+                            //$(".step-box").show();
+                            //$(".box-progress").show();
+                            //$(".header-timeout").show();
+                            window.location.reload();
+                            // window.location.href = data["data"];
+                        } else if (data["res"] === "请勿重复启动该流程。") {
+                            //.. 不作为
+                        } else {
+                            $(".shine").hide()
+                            alert(data["res"]);
+                        }
+                    },
+                    error: function (e) {
+                        alert("流程启动失败，请于管理员联系。");
+                        $(".shine").hide()
+                    }
+                });
+            }, 4 * 1000);
+        })
+    </script>
+</body>
+</html>

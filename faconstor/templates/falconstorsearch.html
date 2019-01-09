@@ -1,0 +1,192 @@
+{% extends "base1.html" %}
+
+
+
+{% block content %}
+
+        <section class="panel panel-default">
+            <div class="panel-body">
+                <div class="bs-example form-horizontal activate-form">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <div class="form-group ">
+                                    <label class="col-md-3 control-label">开始时间</label>
+                                    <div class="col-md-7">
+                                        <input id="startdate" value="{{ starttime }}" autocomplete="off"
+                                               name="startdate"
+                                               class="form-control">
+                                        <div class="form-control-focus"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group ">
+                                    <label class="col-md-3 control-label">结束时间</label>
+                                    <div class="col-md-7">
+                                        <input id="enddate" value="{{ endtime }}" autocomplete="off" name="enddate"
+                                               class="form-control">
+                                        <div class="form-control-focus"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+
+                            <div class="col-md-6">
+                                <div class="form-group ">
+                                    <label class="col-md-3 control-label">流程名称</label>
+                                    <div class="col-md-7">
+                                        <select class="form-control" id="processname" name="processname">
+                                            <option selected value="">全部</option>
+                                            {% for process_name in processname_list %}
+                                                <option value="{{ process_name }}">{{ process_name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group ">
+                                    <label class="col-md-3 control-label">运行状态</label>
+                                    <div class="col-md-7">
+                                        <select class="form-control" id="runstate" name="runstate">
+                                            <option selected value="">全部</option>
+                                            {% for k, v in state_dict.items %}
+                                                <option value="{{ k }}">{{ v }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <div class="form-group ">
+                                    <label class="col-md-3 control-label">启动人</label>
+                                    <div class="col-md-7">
+                                        <input id="runperson" autocomplete="off" name="runperson"
+                                               class="form-control">
+                                        <div class="form-control-focus"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-md-12">
+                            <center>
+                                <button class="btn btn-sm btn-default" id="cx">查询
+                                </button>
+                            </center>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <table class="table table-striped table-bordered table-hover table-checkable order-column" id="sample_1">
+                <thead>
+                <tr>
+                    <th> 任务ID</th>
+                    <th> 流程名称</th>
+                    <th> 启动人</th>
+                    <th> 状态</th>
+                    <th> 启动原因</th>
+                    <th> 开始时间</th>
+                    <th> 结束时间</th>
+                    <th> 流程ID</th>
+                    <th> 流程url</th>
+                    <th style="width:50px;"> 报表查询</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                </tbody>
+            </table>
+        </section>
+
+        <div id="static01" class="modal fade" tabindex="-1" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                        <h4 class="modal-title">流程报表</h4>
+                        <input hidden id="id" type="text" name="id">
+                    </div>
+                    <div class="panel-body">
+                        <form class="bs-example form-horizontal activate-form" action="/custom_pdf_report/"
+                              method="post">{% csrf_token %}
+
+                            <div class="form-body">
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label"><span
+                                            style="color:red; ">*</span>制表人</label>
+                                    <div class="col-md-10">
+                                        <input id="run_person" type="text" name="run_person" class="form-control "
+                                               placeholder="" value="{{ request.user.userinfo.fullname }}" readonly>
+                                        <input type="text" id="processid" name="processid" hidden>
+                                        <input type="text" id="processrunid" name="processrunid" hidden>
+
+                                        <div class="form-control-focus"></div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-2 control-label"><span
+                                        style="color:red; ">*</span>制表时间</label>
+                                <div class="col-md-10">
+                                    <input id="run_time" type="text" name="run_time" class="form-control"
+                                           placeholder="" readonly>
+                                    <div class="form-control-focus"></div>
+
+                                </div>
+                            </div>
+                            <div class="form-actions ">
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn green">确认</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+{% endblock %}
+
+{% block script %}
+    <script>
+        $.ajaxSetup({
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+        });
+    </script>
+
+    <link href="/static/assets/global/plugins/datatables/datatables.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.css" rel="stylesheet"
+          type="text/css"/>
+    <link href="/static/assets/global/plugins/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet"
+          type="text/css"/>
+    <link href="/static/assets/global/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/assets/global/plugins/select2/css/select2-bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/assets/global/css/plugins.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/assets/global/plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css"
+          rel="stylesheet" type="text/css"/>
+
+    <script src="/static/assets/global/plugins/datatables/datatables.min.js" type="text/javascript"></script>
+    <script src="/static/assets/global/plugins/datatables/plugins/bootstrap/datatables.bootstrap.js"
+            type="text/javascript"></script>
+    <script src="/static/assets/global/plugins/bootstrap-select/js/bootstrap-select.min.js"
+            type="text/javascript"></script>
+    <script src="/static/assets/global/plugins/select2/js/select2.full.min.js" type="text/javascript"></script>
+    <script src="/static/assets/pages/scripts/components-select2.min.js" type="text/javascript"></script>
+    <script src="/static/assets/global/plugins/jstree/dist/jstree.min.js" type="text/javascript"></script>
+    <script src="/static/assets/global/plugins/jquery-multi-select/js/jquery.multi-select.js"
+            type="text/javascript"></script>
+    <script src="/static/assets/global/plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js"
+            type="text/javascript"></script>
+
+
+
+{% endblock %}

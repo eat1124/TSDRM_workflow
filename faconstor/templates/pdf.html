@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>pdf</title>
+	{# <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"> #}
+</head>
+<body>
+        <h1 align="center">{{ title_xml }}</h1>
+        <h3 align="center">{{ abstract_xml }}</h3>
+
+        <h4 align="center">{{ first_el_dict.create_user }}</h4>
+        <h4 align="center">{{ first_el_dict.start_time }}</h4>
+
+        <br><br><br><br><br><br><br><br><br>
+
+		{{ele_xml01}}
+		<ul>
+			<li>开始时间：{{ first_el_dict.start_time }}</li>
+			<li>结束时间：{{ first_el_dict.end_time }}</li>
+			<li>RTO：{{ first_el_dict.rto }}</li>
+			{% if first_el_dict.create_user %}<li>发起人：{{ first_el_dict.create_user }}</li>{% endif %}
+			{% if first_el_dict.receiveuser %}<li>签字人：{{ first_el_dict.receiveuser }}</li>{% endif %}
+			{% if first_el_dict.operator %}<li>参与人：{{ first_el_dict.operator }}</li>{% endif %}
+			{% if first_el_dict.run_reason %}<li>切换原因：{{ first_el_dict.run_reason }}</li>{% endif %}
+		</ul>
+
+
+		{{ele_xml02}}
+		<ul>
+
+		{% for step in step_info_list %}
+			<li>  {{step.step_name}}</li>
+			{% if step.start_time %}<li>&nbsp&nbsp 开始时间：{{step.start_time}}</li>{% endif %}
+			{% if step.end_time %}<li>&nbsp&nbsp 结束时间：{{step.end_time}}</li>{% endif %}
+			{% if step.rto %}<li>&nbsp&nbsp RTO：{{step.rto}}</li>{% endif %}
+			{% if step.operator %}<li>&nbsp&nbsp 负责人： {{ step.operator}} </li>{% endif %}
+            {% if step.script_list_wrapper %}
+			<li>&nbsp&nbsp 脚本：
+				<ul>
+					{% for script in step.script_list_wrapper %}
+					<li>  {{ script.script_name }}</li>
+					{% if script.start_time %}<li>&nbsp&nbsp 开始时间：{{ script.start_time }}</li>{% endif %}
+					{% if script.end_time %}<li>&nbsp&nbsp 结束时间：{{ script.end_time }}</li>{% endif %}
+					{% if script.rto %}<li>&nbsp&nbsp RTO：{{ script.rto }}</li>{% endif %}
+					{% if script.state %}<li>&nbsp&nbsp 状态：{{ script.state }}</li>{% endif %}
+					{% if script.explain %}<li>&nbsp&nbsp 执行结果：{{ script.explain }}</li>{% endif %}
+					{% endfor %}
+				</ul>
+			</li>
+            {% endif %}
+			<ul>
+				{% for inner_step in step.inner_step_list%}
+				<li>  {{ inner_step.step_name }}</li>
+				{% if inner_step.start_time %}<li>&nbsp&nbsp 开始时间：{{ inner_step.start_time }}</li>{% endif %}
+				{% if inner_step.end_time %}<li>&nbsp&nbsp 结束时间：{{ inner_step.end_time }}</li>{% endif %}
+				{% if inner_step.rto %}<li>&nbsp&nbsp RTO：{{ inner_step.rto }}</li>{% endif %}
+				{% if inner_step.operator %}<li>&nbsp&nbsp 负责人：{{ inner_step.operator }}</li>{% endif %}
+                    {% if inner_step.script_list_inner %}
+				<li>&nbsp&nbsp 脚本：
+					<ul>  
+						{% for script_inner in inner_step.script_list_inner%}
+						<li>  {{ script_inner.script_name }}</li>
+						{% if script_inner.start_time %}<li>&nbsp&nbsp 开始时间：{{ script_inner.start_time }}</li>{% endif %}
+						{% if script_inner.end_time %}<li>&nbsp&nbsp 结束时间：{{ script_inner.end_time }}</li>{% endif %}
+						{% if script_inner.rto %}<li>&nbsp&nbsp RTO：{{ script_inner.rto }}</li>{% endif %}
+						{% if script_inner.state %}<li>&nbsp&nbsp 状态：{{ script_inner.state }}</li>{% endif %}
+						{% if script_inner.explain %}<li>&nbsp&nbsp 执行结果：{{ script_inner.explain }}</li>{% endif %}
+						{% endfor %}
+					</ul>
+				</li>
+                    {% endif %}
+				{% endfor %}
+			</ul>
+		{% endfor %}
+		</ul>
+</body>
+</html>

@@ -1,0 +1,163 @@
+[
+  {
+    "inner_step_list": [
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u57fa\u7840\u73af\u5883\u68c0\u67e5",
+        "inner_step_group_name": "",
+        "inner_script_list": [
+          {
+            "inner_script_name": "\u7f51\u7edc\u8fde\u901a\u6027\u68c0\u67e5"
+          },
+          {
+            "inner_script_name": "SSH\u670d\u52a1\u72b6\u6001\u68c0\u67e5"
+          },
+          {
+            "inner_script_name": "ISCSI\u670d\u52a1\u72b6\u6001\u68c0\u67e5"
+          }
+        ]
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u6570\u636e\u5e93\u8fd0\u884c\u73af\u5883\u68c0\u67e5",
+        "inner_step_group_name": "",
+        "inner_script_list": [
+          {
+            "inner_script_name": "\u6570\u636e\u5e93\u7a0b\u5e8f\u662f\u5426\u5b89\u88c5"
+          },
+          {
+            "inner_script_name": "\u6570\u636e\u5e93\u5b9e\u4f8b\u540d\u662f\u5426\u6b63\u786e"
+          },
+          {
+            "inner_script_name": "\u6570\u636e\u5e93\u670d\u52a1\u662f\u5426\u505c\u6b62"
+          }
+        ]
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u98de\u5eb7\u4fdd\u62a4\u72b6\u6001\u68c0\u67e5",
+        "inner_step_group_name": "",
+        "inner_script_list": [
+          {
+            "inner_script_name": "\u6570\u636e\u4fdd\u62a4\u662f\u5426\u6b63\u5e38"
+          }
+        ]
+      }
+    ],
+    "wrapper_step_group_name": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+    "wrapper_step_name": "\u4e00.\u707e\u5907\u670d\u52a1\u5668\u73af\u5883\u68c0\u67e5"
+  },
+  {
+    "inner_step_list": [
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u5feb\u7167\u7684\u9009\u62e9",
+        "inner_step_group_name": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+        "inner_script_list": [
+          {
+            "inner_script_name": "2-1"
+          }
+        ]
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u6302\u8f7d\u5feb\u7167\u5230\u707e\u5907\u670d\u52a1\u5668",
+        "inner_step_group_name": "",
+        "inner_script_list": [
+          {
+            "inner_script_name": "2-2"
+          }
+        ]
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u542f\u52a8\u6570\u636e\u5e93",
+        "inner_step_group_name": "",
+        "inner_script_list": [
+          {
+            "inner_script_name": "2-3"
+          }
+        ]
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u542f\u52a8\u76d1\u542c",
+        "inner_step_group_name": "",
+        "inner_script_list": [
+          {
+            "inner_script_name": "2-4"
+          }
+        ]
+      }
+    ],
+    "wrapper_step_group_name": "",
+    "wrapper_step_name": "\u4e8c.\u707e\u5907\u670d\u52a1\u542f\u7528"
+  },
+  {
+    "inner_step_list": [],
+    "wrapper_step_group_name": "",
+    "wrapper_step_name": "\u4e09.\u542f\u52a8\u5e94\u7528\u670d\u52a1"
+  },
+  {
+    "inner_step_list": [],
+    "wrapper_step_group_name": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+    "wrapper_verify_list": [
+      {
+        "wrapper_verify_name": "\u6570\u636e\u5df2\u9a8c\u8bc1"
+      }
+    ],
+    "wrapper_step_name": "\u56db.\u9a8c\u8bc1\u6570\u636e"
+  },
+  {
+    "inner_step_list": [
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u5173\u95ed\u5e94\u7528",
+        "inner_step_group_name": "",
+        "inner_script_list": []
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u5173\u95ed\u6570\u636e\u5e93",
+        "inner_step_group_name": "",
+        "inner_script_list": [
+          {
+            "inner_script_name": "5-2"
+          }
+        ]
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u5378\u8f7d\u6570\u636e\u5377",
+        "inner_step_group_name": "",
+        "inner_script_list": [
+          {
+            "inner_script_name": "5-3"
+          }
+        ]
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u5220\u9664\u5feb\u7167",
+        "inner_step_group_name": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+        "inner_script_list": [
+          {
+            "inner_script_name": "5-4"
+          }
+        ]
+      },
+      {
+        "inner_verify_list": [],
+        "inner_step_name": "\u91cd\u542f\u670d\u52a1\u5668",
+        "inner_step_group_name": "\u5907\u4efd\u7ba1\u8def\u5458\u7ec4",
+        "inner_script_list": [
+          {
+            "inner_script_name": "5-5"
+          }
+        ]
+      }
+    ],
+    "wrapper_step_group_name": "",
+    "wrapper_step_name": "\u4e94.\u707e\u5907\u73af\u5883\u5173\u95ed"
+  }
+]
