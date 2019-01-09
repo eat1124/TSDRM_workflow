@@ -220,8 +220,10 @@ $(function () {
         return true;
     };
 
-    // 连线
+    // 取消选中
     demo.onItemBlur = function (id, type) {
+        $("#divline").hide();
+        $("#divnode").hide();
         if (type == 'node') {
             demo.$nodeData[id].code = $("#code").val()
             demo.$nodeData[id].name = $("#name").val()

@@ -10,8 +10,8 @@ function getElCoordinate(dom) {
     l += dom.offsetLeft;
 	dom=dom.offsetParent;
   }; return {
-    top: t-156,
-    left: l-244
+    top: t,
+    left: l
   };
 }
 //兼容各种浏览器的,获取鼠标真实位置

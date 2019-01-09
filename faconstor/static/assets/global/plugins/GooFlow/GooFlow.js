@@ -514,8 +514,8 @@ GooFlow.prototype={
 		if(cursor!="move"){
 			This.$ghost.css({display:"block",
 				width:This.$areaData[id].width-2+"px", height:This.$areaData[id].height-2+"px",
-				top:This.$areaData[id].top+t.top-This.$workArea[0].parentNode.scrollTop+hack+"px",
-				left:This.$areaData[id].left+t.left-This.$workArea[0].parentNode.scrollLeft+hack+"px",cursor:cursor});
+				top:This.$areaData[id].top+t.top-This.$workArea[0].parentNode.scrollTop+hack-t.top+31+"px",
+				left:This.$areaData[id].left+t.left-This.$workArea[0].parentNode.scrollLeft+hack-t.left+75+"px",cursor:cursor});
 			var vX=(This.$areaData[id].left+This.$areaData[id].width)-X;
 			var vY=(This.$areaData[id].top+This.$areaData[id].height)-Y;
 		}
@@ -555,7 +555,7 @@ GooFlow.prototype={
 					Y=t.top-This.$workArea[0].parentNode.scrollTop;
 				else if(Y+This.$workArea[0].parentNode.scrollTop+This.$areaData[id].height>t.top+This.$workArea.height())
 					Y=t.top+This.$workArea.height()-This.$workArea[0].parentNode.scrollTop-This.$areaData[id].height;
-				This.$ghost.css({left:X+hack+"px",top:Y+hack+"px"});
+				This.$ghost.css({left:X+hack-t.left+75+"px",top:Y+hack-t.top+31+"px"});
 			}
 			isMove=true;
 		}
@@ -754,7 +754,6 @@ GooFlow.prototype={
 				var ev=mousePosition(e);
 				if(X==ev.x-vX&&Y==ev.y-vY)	return false;
 				X=ev.x-vX;Y=ev.y-vY;
-				
 				if(isMove&&This.$ghost.css("display")=="none"){
 					This.$ghost.css({display:"block",
 						width:This.$nodeData[id].width-2+"px", height:This.$nodeData[id].height-2+"px",
@@ -771,7 +770,7 @@ GooFlow.prototype={
 					Y=t.top-This.$workArea[0].parentNode.scrollTop;
 				else if(Y+This.$workArea[0].parentNode.scrollTop+This.$nodeData[id].height>t.top+This.$workArea.height())
 					Y=t.top+This.$workArea.height()-This.$workArea[0].parentNode.scrollTop-This.$nodeData[id].height;
-				This.$ghost.css({left:X+hack+"px",top:Y+hack+"px"});
+				This.$ghost.css({left:X+hack-t.left+75+"px",top:Y+hack-t.top+31+"px"});
 				isMove=true;
 			}
 			document.onmouseup=function(e){
@@ -889,8 +888,8 @@ GooFlow.prototype={
 			var ev=mousePosition(e),t=getElCoordinate(This.$workArea[0]);
 			This.$ghost.css({display:"block",
 				width:This.$nodeData[id].width-2+"px", height:This.$nodeData[id].height-2+"px",
-				top:This.$nodeData[id].top+t.top-This.$workArea[0].parentNode.scrollTop+hack+"px",
-				left:This.$nodeData[id].left+t.left-This.$workArea[0].parentNode.scrollLeft+hack+"px",cursor:cursor
+				top:This.$nodeData[id].top+t.top-This.$workArea[0].parentNode.scrollTop+hack-t.top+31+"px",
+				left:This.$nodeData[id].left+t.left-This.$workArea[0].parentNode.scrollLeft+hack-t.left+75+"px",cursor:cursor
 			});
 			var X,Y;
 			X=ev.x-t.left+This.$workArea[0].parentNode.scrollLeft;
