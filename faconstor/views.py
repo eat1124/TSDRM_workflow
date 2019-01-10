@@ -358,7 +358,6 @@ def get_process_index_data(request):
                         })
 
             # rtostate/rtoendtime RTO什么时候停止跳动?
-            c_sub_step_id = ""
             # 包含步骤："不计入RTO & 状态为CONFIRM/DONE" 此时rtostate=DONE,rtoendtime为上一步结束时间;
             for step in c_process_steps:
                 if step.intertype == "complex":
@@ -374,7 +373,6 @@ def get_process_index_data(request):
                                 sub_step_run = sub_step_run[0]
                                 if sub_step_run.state in ["CONFIRM", "DONE"] and sub_step.rto_count_in == "0":
                                     rtostate = "DONE"
-                                    c_sub_step_id = sub_step.id
                                     break
 
                 else:
@@ -383,7 +381,6 @@ def get_process_index_data(request):
                         c_step_run = c_step_run[0]
                         if c_step_run.state in ["CONFIRM", "DONE"] and step.rto_count_in == "0":
                             rtostate = "DONE"
-                            c_sub_step_id = step.id
                             break
 
             # rtoendtime
@@ -406,19 +403,13 @@ def get_process_index_data(request):
                     mysteps = mysteps | mystep
                 else:
                     mysteps = mystep
-            # 确认项步骤前一个步骤的结束时间作为rtoendtime
-            pre_step = ""
-            if mysteps:
-                for num, step in enumerate(mysteps):
-                    if step.id == c_sub_step_id:
-                        break
-                    pre_step = step
-            if pre_step:
-                pre_step_run = pre_step.steprun_set.filter(processrun=current_processrun)
-                if pre_step_run.exists():
-                    pre_step_run = pre_step_run[0]
-                    if pre_step_run and pre_step_run.endtime:
-                        rtoendtime = pre_step_run.endtime.strftime('%Y-%m-%d %H:%M:%S')
+            # 最后一个计入RTO的步骤的结束时间作为rtoendtime
+            if rtostate == "DONE":
+                last_rto_count_in_step = mysteps.filter(rto_count_in="1").last()
+                last_rto_count_in_step_run = last_rto_count_in_step.steprun_set.filter(processrun=current_processrun)
+                if last_rto_count_in_step_run.exists():
+                    last_rto_count_in_step_run = last_rto_count_in_step_run[0]
+                    rtoendtime = last_rto_count_in_step_run.endtime.strftime('%Y-%m-%d %H:%M:%S')
 
             # 流程需要签字
             if current_processrun.state == "SIGN":
@@ -447,9 +438,8 @@ def get_process_index_data(request):
             }
         else:
             c_step_run_data = {}
-        print(c_step_run_data)
-        # with open("test.json", "w") as f:
-        #     f.write(json.dumps(c_step_run_data))
+        with open(r"C:\Users\Administrator\Desktop\test.json", "w") as f:
+            f.write(json.dumps(c_step_run_data))
         return JsonResponse(c_step_run_data)
 
 
@@ -525,12 +515,12 @@ def index(request, funid):
         last_processrun_time = successful_processruns.last().starttime if successful_processruns else ""
         all_processruns = len(processrun_times_obj) if processrun_times_obj else 0
 
+        # 修改RTO
         if successful_processruns:
             rto_sum_seconds = 0
 
             for processrun in successful_processruns:
-                all_step_runs = processrun.steprun_set.exclude(state="9").exclude(step__rto_count_in="0").filter(
-                    step__pnode=None)
+                all_step_runs = processrun.steprun_set.exclude(step__rto_count_in="0")
                 step_rto = 0
                 if all_step_runs:
                     for step_run in all_step_runs:
@@ -542,20 +532,6 @@ def index(request, funid):
                             rto = delta_time.total_seconds()
                         step_rto += rto
                 rto_sum_seconds += step_rto
-
-                # 扣除子级步骤中可能的rto_count_in的时间
-                all_inner_step_runs = processrun.steprun_set.exclude(state="9").filter(step__rto_count_in="0").exclude(
-                    step__pnode=None)
-                inner_rto_not_count_in = 0
-                if all_inner_step_runs:
-                    for inner_step_run in all_inner_step_runs:
-                        end_time = inner_step_run.endtime
-                        start_time = inner_step_run.starttime
-                        if end_time and start_time:
-                            delta_time = (end_time - start_time)
-                            rto = delta_time.total_seconds()
-                            inner_rto_not_count_in += rto
-                rto_sum_seconds -= inner_rto_not_count_in
 
             m, s = divmod(rto_sum_seconds / len(successful_processruns), 60)
             h, m = divmod(m, 60)
@@ -2786,7 +2762,8 @@ def process_data(request):
         if not process_level or process_level == "0":
             all_process = Process.objects.exclude(state="9").filter(type="falconstor").order_by("sort")
         else:
-            all_process = Process.objects.exclude(state="9").filter(type="falconstor", level=int(process_level)).order_by(
+            all_process = Process.objects.exclude(state="9").filter(type="falconstor",
+                                                                    level=int(process_level)).order_by(
                 "sort")
         if all_process.exists():
             for process in all_process:
@@ -4299,7 +4276,6 @@ def verify_items(request):
                                                                                                 "step").all()
         if current_step_run:
             current_step_run = current_step_run[0]
-            print("*******************", current_step_run.id, current_step_run.step.id, current_step_run.step.name)
 
             # CONFIRM修改成DONE
             current_step_run.state = "DONE"
@@ -4517,6 +4493,7 @@ def show_result(request):
         step_rto = 0
         if all_step_runs:
             for step_run in all_step_runs:
+                print(step_run.id)
                 rto = 0
                 end_time = step_run.endtime
                 start_time = step_run.starttime
