@@ -506,17 +506,22 @@ def index(request, funid):
                      "task_icon": current_icon, "process_color": process_color})
                 if len(alltask) >= 50:
                     break
-        # 成功率，恢复次数，平均RTO，最新切换
+
         all_processrun_objs = ProcessRun.objects.filter(Q(state="DONE") | Q(state="STOP"))
         successful_processruns = ProcessRun.objects.filter(state="DONE")
-        processrun_times_obj = ProcessRun.objects.exclude(state__in=["RUN", "REJECT"]).exclude(state="9")
+        processrun_times_obj = ProcessRun.objects.exclude(state__in=["RUN", "REJECT", "9"])
 
+        # 成功率
         success_rate = "%.0f" % (len(successful_processruns) / len(
             all_processrun_objs) * 100) if all_processrun_objs and successful_processruns else 0
+
+        # 最新切换
         last_processrun_time = successful_processruns.last().starttime if successful_processruns else ""
+
+        # 演练次数
         all_processruns = len(processrun_times_obj) if processrun_times_obj else 0
 
-        # 修改RTO
+        # 平均RTO
         if successful_processruns:
             rto_sum_seconds = 0
 
@@ -531,72 +536,6 @@ def index(request, funid):
         else:
             average_rto = "00时00分00秒"
 
-        # 正在切换:start_time, delta_time, current_step, current_operator， current_process_name, all_steps
-        current_processruns = ProcessRun.objects.exclude(state__in=["DONE", "STOP", "REJECT"]).exclude(
-            state="9").select_related("process")
-        curren_processrun_info_list = []
-        state_dict = {
-            "DONE": "已完成",
-            "EDIT": "未执行",
-            "RUN": "执行中",
-            "ERROR": "执行失败",
-            "IGNORE": "忽略",
-            "STOP": "终止",
-            "PLAN": "计划",
-            "REJECT": "取消",
-            "SIGN": "签到",
-            "": "",
-        }
-
-        process_rate = "0"
-        if current_processruns:
-            for current_processrun in current_processruns:
-                current_processrun_dict = {}
-                start_time_strftime = ""
-                current_delta_time = ""
-                current_step_name = ""
-                current_process_name = ""
-                current_step_index = ""
-                all_steps = []
-                group_name = ""
-                users = ""
-                process_id = current_processrun.process_id
-                current_process_name = current_processrun.process.name
-                start_time = current_processrun.starttime.replace(tzinfo=None)
-                start_time_strftime = start_time.strftime('%Y-%m-%d %H:%M:%S')
-                current_time = datetime.datetime.now()
-                current_delta_time = (current_time - start_time).total_seconds()
-                m, s = divmod(current_delta_time, 60)
-                h, m = divmod(m, 60)
-                current_delta_time = "%d时%02d分%02d秒" % (h, m, s)
-
-                current_processrun_id = current_processrun.id
-
-                # 进程url
-                processrun_url = current_processrun.process.url + "/" + str(current_processrun_id)
-
-                # 当前系统任务
-                current_process_task_info = get_c_process_run_tasks(current_processrun.id)
-
-                current_processrun_dict["current_process_run_state"] = state_dict[
-                    "{0}".format(current_processrun.state)]
-                current_processrun_dict["current_process_task_info"] = current_process_task_info
-                current_processrun_dict["current_processrun_dict"] = current_processrun_dict
-                current_processrun_dict["start_time_strftime"] = start_time_strftime
-                current_processrun_dict["current_delta_time"] = current_delta_time
-                current_processrun_dict["current_process_name"] = current_process_name
-                current_processrun_dict["current_step_index"] = current_step_index
-                current_processrun_dict["all_steps"] = all_steps
-                current_processrun_dict["process_rate"] = process_rate
-                current_processrun_dict["current_step_name"] = current_step_name
-                current_processrun_dict["group_name"] = group_name
-                current_processrun_dict["users"] = users
-                current_processrun_dict["processrun_url"] = processrun_url
-                current_processrun_dict["processrun_id"] = current_processrun.id
-
-                curren_processrun_info_list.append(current_processrun_dict)
-
-        # 系统切换成功率
         all_processes = Process.objects.exclude(state="9").filter(type="falconstor", level=1)
         process_success_rate_list = []
         if all_processes:
@@ -619,8 +558,7 @@ def index(request, funid):
                       {'username': request.user.userinfo.fullname, "alltask": alltask, "homepage": True,
                        "pagefuns": getpagefuns(funid, request), "success_rate": success_rate,
                        "all_processruns": all_processruns, "last_processrun_time": last_processrun_time,
-                       "average_rto": average_rto, "curren_processrun_info_list": curren_processrun_info_list,
-                       "process_success_rate_list": process_success_rate_list})
+                       "average_rto": average_rto, "process_success_rate_list": process_success_rate_list})
     else:
         return HttpResponseRedirect("/login")
 
@@ -628,7 +566,7 @@ def index(request, funid):
 def get_process_rto(request):
     if request.user.is_authenticated():
         # 不同流程最近的12次切换RTO
-        all_processes = Process.objects.exclude(state="9").filter(type="falconstor")
+        all_processes = Process.objects.exclude(state="9").filter(type="falconstor", level="1")
         process_rto_list = []
         if all_processes:
             for process in all_processes:
@@ -4373,7 +4311,7 @@ def show_result(request):
                             "operator": operator,
                         })
             else:
-                p_step_name = "*" + p_step.name
+                p_step_name = p_step.name
 
                 p_rto = ""
                 p_start_time = ""
