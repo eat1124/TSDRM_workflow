@@ -12,13 +12,18 @@
 
             {% endif %}</div>
         <div class="row">
-            <div class="col-md-6">
-                <div>
-                    <button id="new" type="button" data-toggle="modal" data-target="#static" class="btn  green">
-                        新增
-                        <i class="fa fa-plus"></i>
-                    </button>
-                </div>
+            <div class="col-md-10">
+                <button id="new" type="button" data-toggle="modal" data-target="#static" class="btn  green">
+                    新增
+                    <i class="fa fa-plus"></i>
+                </button>
+            </div>
+            <div class="col-md-2">
+                <select class="form-control" id="level_change" name="level_change" style="display: inline">
+                    <option value="0">默认</option>
+                    <option value="1">主流程</option>
+                    <option value="2">子流程</option>
+                </select>
             </div>
         </div>
 
@@ -30,6 +35,7 @@
             <th style="width:40px;"> 序号</th>
             <th> 预案编号</th>
             <th> 预案名称</th>
+            <th> 预案级别</th>
             <th> 预案描述</th>
             <th> 是否签到</th>
             <th> RTO</th>
@@ -37,6 +43,8 @@
             <th> 排序</th>
             <th> 颜色</th>
             <th> 状态</th>
+            <th></th>
+
             <th style="width:50px;"> 操作</th>
         </tr>
         </thead>
@@ -74,6 +82,19 @@
                                 <div class="col-md-10">
                                     <input id="name" type="text" name="name" class="form-control "
                                            placeholder="">
+                                    <div class="form-control-focus"></div>
+
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-2 control-label"><span
+                                        style="color:red; ">*</span>预案级别</label>
+                                <div class="col-md-10">
+                                    <select class="form-control" id="level" name="level">
+                                        <option value="1">主流程</option>
+                                        <option value="2">子流程</option>
+                                    </select>
                                     <div class="form-control-focus"></div>
 
                                 </div>
@@ -242,7 +263,8 @@
                             <div class="form-group">
                                 <label class="col-md-2 control-label">图标颜色</label>
                                 <div class="col-md-10">
-                                    <input id="copy_process_color" type="text" name="copy_process_color" class="form-control"
+                                    <input id="copy_process_color" type="text" name="copy_process_color"
+                                           class="form-control"
                                            placeholder="">
                                     <div class="form-control-focus"></div>
 

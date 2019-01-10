@@ -50,6 +50,11 @@ class Process(models.Model):
     url = models.CharField("页面链接", blank=True, max_length=100)
     type = models.CharField("预案类型", blank=True, max_length=100, null=True)
     color = models.CharField("颜色", blank=True, max_length=50)
+    level_choice = [
+        (1, "主流程"),
+        (2, "子流程"),
+    ]
+    level = models.IntegerField("流程级别", choices=level_choice, default=None)
 
 
 class Step(models.Model):
@@ -66,7 +71,6 @@ class Step(models.Model):
     sort = models.IntegerField("排序", blank=True, null=True)
     rto_count_in = models.CharField("是否算入RTO", blank=True, null=True, max_length=10, default="1")
     remark = models.CharField("备注", blank=True, null=True, max_length=500, help_text="告知业务人员灾备环境地址等信息")
-    # ****************************************************** add
     drwaid = models.IntegerField("画面ID", default=None)
     left = models.IntegerField("左边距", blank=True, null=True)
     top = models.IntegerField("上边距", blank=True, null=True)

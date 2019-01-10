@@ -103,40 +103,32 @@ $(function () {
             if (demo.$nodeData[id].skip) {
                 if (demo.$nodeData[id].skip == "1") {
                     $('input:radio[name=radio1]')[0].checked = true;
-                }
-                else {
+                } else {
                     $('input:radio[name=radio1]')[1].checked = true;
                 }
-            }
-            else {
+            } else {
                 $('input:radio[name=radio1]')[1].checked = true;
             }
             if (demo.$nodeData[id].group) {
                 try {
                     $("#group").val(demo.$nodeData[id].group)
 
-                }
-                catch (e) {
+                } catch (e) {
                 }
             }
 
             // 子流程
             if (demo.$nodeData[id].sub_process) {
-                try {
-                    $("#process").val(demo.$nodeData[id].sub_process)
-                } catch (e) {
-                    // ..
-                }
-                // $(".select2, .select2-multiple").select2({
-                //     width: null
-                // });
+                // select选中操作
+                var cSelect = $("#process").select();
+                cSelect.val(demo.$nodeData[id].sub_process).trigger("change");
+                cSelect.change();
             }
 
 
             if (demo.$nodeData[id].time) {
                 $("#time").val(demo.$nodeData[id].time)
-            }
-            else {
+            } else {
                 $("#time").val("")
             }
             var myscripts = demo.$nodeData[id].stepscript;
@@ -164,8 +156,7 @@ $(function () {
                 $("#div_remark").hide();
                 $("#div_rto_count_in").hide();
                 $("#div_verify").hide();
-            }
-            else if (demo.$nodeData[id].type == 'task' || demo.$nodeData[id].type == 'node') {
+            } else if (demo.$nodeData[id].type == 'task' || demo.$nodeData[id].type == 'node') {
                 $("#divskip").show();
                 $("#divgroup").show();
                 $("#divprocess").hide();
@@ -178,6 +169,7 @@ $(function () {
                 $("#div_remark").show();
                 $("#div_rto_count_in").show();
                 $("#div_verify").show();
+                $("#div_step").show();
 
                 if (demo.$nodeData[id].type == 'task') {
                     if ($("#nodetype").val() == "commvault") {
@@ -204,10 +196,10 @@ $(function () {
                 $("#div_remark").hide();
                 $("#div_rto_count_in").hide();
                 $("#div_verify").hide();
+                $("#div_step").hide();
             }
 
-        }
-        else if (type == 'line') {
+        } else if (type == 'line') {
             $("#divline").show()
             $("#divnode").hide()
             $("#linename").val(demo.$lineData[id].name)
@@ -225,28 +217,31 @@ $(function () {
         $("#divline").hide();
         $("#divnode").hide();
         if (type == 'node') {
-            demo.$nodeData[id].code = $("#code").val()
-            demo.$nodeData[id].name = $("#name").val()
+            demo.$nodeData[id].code = $("#code").val();
             demo.$nodeData[id].skip = $("input:radio[name='radio1']:checked").val();
+            demo.$nodeData[id].time = $("#time").val();
+            demo.$nodeData[id].nodetype = $("#nodetype").val();
+
             if (demo.$nodeData[id].type == 'complex')
                 demo.$nodeData[id].sub_process = $("#process").val();
-            else
+            else {
+                demo.$nodeData[id].name = $("#name").val();
+                demo.$nodeData[id].approval = $("#approval").val();
+                demo.$nodeData[id].remark = $("#remark").val();
+                demo.$nodeData[id].rto_count_in = $("#rto_count_in").val();
                 demo.$nodeData[id].group = $("#group").val();
-            demo.$nodeData[id].time = $("#time").val()
-            demo.$nodeData[id].nodetype = $("#nodetype").val()
+            }
 
 
             $("#" + id + " table tr:first td:nth-child(2)").text("h");
 
             if (demo.$nodeData[id].type == 'start round' || demo.$nodeData[id].type == 'end round') {
                 $("#" + id + " div:nth-child(3)").text($("#name").val());
-            }
-            else {
+            } else {
                 $("#" + id + " table tr:first td:nth-child(2)").text($("#name").val());
             }
 
-        }
-        else if (type == 'line') {
+        } else if (type == 'line') {
             demo.$lineData[id].name = $("#linename").val();
             demo.$lineData[id].formula = $("#lineformula").val();
             $("#" + id + " text").text($("#linename").val());
@@ -260,14 +255,17 @@ $(function () {
             var type = $("#type").val();
             if (type == 'node') {
                 demo.$nodeData[id].code = $("#code").val();
-                demo.$nodeData[id].name = $("#name").val();
+                if ($("#process").val()) {
+                    demo.$nodeData[id].name = $("#process option:selected").text();
+                } else {
+                    demo.$nodeData[id].name = $("#name").val();
+                }
                 demo.$nodeData[id].skip = $("input:radio[name='radio1']:checked").val();
 
                 // 将子流程计入另一个字段
                 demo.$nodeData[id].sub_process = $("#process").val();
                 demo.$nodeData[id].group = $("#group").val();
                 demo.$nodeData[id].time = $("#time").val();
-
                 // add
                 demo.$nodeData[id].approval = $("#approval").val();
                 demo.$nodeData[id].rto_count_in = $("#rto_count_in").val();
@@ -277,13 +275,11 @@ $(function () {
 
                 if (demo.$nodeData[id].type == 'start round' || demo.$nodeData[id].type == 'end round') {
                     $("#" + id + " div:nth-child(3)").text($("#name").val());
-                }
-                else {
+                } else {
                     $("#" + id + " table tr:first td:nth-child(2)").text($("#name").val());
                 }
 
-            }
-            else if (type == 'line') {
+            } else if (type == 'line') {
                 demo.$lineData[id].name = $("#linename").val();
                 demo.$lineData[id].formula = $("#lineformula").val();
                 $("#" + id + " text").text($("#linename").val());
@@ -339,11 +335,22 @@ $(function () {
     }
     // 删除
     demo.onItemDel = function () {
-        $("#type").val("")
-        $("#divline").hide()
-        $("#divnode").hide()
+        $("#type").val("");
+        $("#divline").hide();
+        $("#divnode").hide();
         return true;
     };
+
+    // 跳转子流程
+    $("#sub_process_switch").click(function () {
+        var subProcess = $("#process").val();
+        if (subProcess) {
+            window.open("/processdraw/" + subProcess)
+        } else {
+            alert("子流程不存在!")
+        }
+    });
+
 
     // 脚本管理
     $('#se_1').contextmenu({

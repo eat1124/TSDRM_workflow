@@ -239,7 +239,7 @@ def getchildrensteps(processrun, sub_process, step_intertype):
         if c_process.exists():
             c_process = c_process[0]
             steplist = c_process.step_set.filter(state="1").filter(
-                intertype__in=["node", "task"]).order_by("drwaid")
+                intertype__in=["node", "task"]).order_by("sort")
             for step in steplist:
                 runid = 0
                 starttime = ""
@@ -442,7 +442,7 @@ def custom_wrapper_step_list(process_id):
     c_process = Process.objects.filter(state="1", id=process_id)
     assert c_process[0], "流程未发布"
     c_process = c_process[0]
-    p_steps = c_process.step_set.order_by("drwaid").filter(state="1", intertype__in=["node", "task", "complex"])
+    p_steps = c_process.step_set.order_by("sort").filter(state="1", intertype__in=["node", "task", "complex"])
     wrapper_step_list = []
     for num, p_step in enumerate(p_steps):
         num_str = str(num + 1)
@@ -459,7 +459,7 @@ def custom_wrapper_step_list(process_id):
                 sub_process = sub_process[0]
                 wrapper_step_name = num_to_char_choices[num_str] + sub_process.name
                 sub_process_steps = sub_process.step_set.filter(state="1", intertype__in=["node", "task"]).order_by(
-                    "drwaid")
+                    "sort")
                 for sub_process_step in sub_process_steps:
                     inner_step_name = sub_process_step.name
 
@@ -535,3 +535,17 @@ def custom_wrapper_step_list(process_id):
         })
     return wrapper_step_list
 
+
+def sort_c_process_steps(my_process, current_step):
+    """
+    对当前流程步骤添加sort字段
+    :param current_step:
+    :return:
+    """
+    line_step = \
+        my_process.step_set.filter(state="1", type="lines",
+                                  fromnode="demo_node_" + str(current_step.drwaid).zfill(10))[0]
+    to_node = line_step.tonode.split("demo_node_")[1]
+    next_step = \
+        my_process.step_set.filter(state="1", drwaid=to_node, intertype__in=["node", "task", "complex"])
+    return next_step

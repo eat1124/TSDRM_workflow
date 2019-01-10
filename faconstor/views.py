@@ -227,7 +227,7 @@ def get_process_index_data(request):
             # complex: 调用子步骤的state,starttime,endtime,percent,type
             # node/task: 步骤的state,starttime,endtime,percent,type
             c_process_steps = current_process.step_set.filter(state="1").filter(
-                intertype__in=["complex", "node", "task"]).order_by("drwaid")
+                intertype__in=["complex", "node", "task"]).order_by("sort")
 
             steps = []
             rtostate = "RUN"
@@ -244,7 +244,7 @@ def get_process_index_data(request):
                         name = c_process.name
                         # state:DONE,RUN,ERROR,EDIT,STOP 根据第一个not_done步骤的状态来作为当前子流程状态
                         all_steps = c_process.step_set.filter(state="1").filter(
-                            intertype__in=["node", "task"]).order_by("drwaid")
+                            intertype__in=["node", "task"]).order_by("sort")
                         state = "EDIT"
                         c_step_run_index = 0
                         for num, first_not_done_step in enumerate(all_steps):
@@ -258,7 +258,7 @@ def get_process_index_data(request):
                                     break
                         # starttime
                         first_step = c_process.step_set.filter(state="1").filter(
-                            intertype__in=["node", "task"]).order_by("drwaid").first()
+                            intertype__in=["node", "task"]).order_by("sort").first()
                         first_step_run = first_step.steprun_set.filter(processrun=current_processrun)
                         if first_step_run:
                             first_step_run = first_step_run[0]
@@ -367,7 +367,7 @@ def get_process_index_data(request):
                     if c_process.exists():
                         c_process = c_process[0]
                         all_steps = c_process.step_set.filter(state="1").filter(
-                            intertype__in=["node", "task"]).order_by("drwaid")
+                            intertype__in=["node", "task"]).order_by("sort")
                         for sub_step in all_steps:
                             sub_step_run = sub_step.steprun_set.filter(processrun=current_processrun)
                             if sub_step_run.exists():
@@ -388,7 +388,7 @@ def get_process_index_data(request):
 
             # rtoendtime
             # 构造所有步骤
-            sub_processes = current_process.step_set.order_by("drwaid").filter(state="1").filter(
+            sub_processes = current_process.step_set.order_by("sort").filter(state="1").filter(
                 intertype__in=["node", "task", "complex"]).values_list("sub_process", "intertype")
             mysteps = ""
             for sub_process in sub_processes:
@@ -396,10 +396,10 @@ def get_process_index_data(request):
                     sub_process_id = sub_process[0]
                     c_process = Process.objects.filter(id=int(sub_process_id)).filter(state="1")
 
-                    mystep = c_process[0].step_set.order_by("drwaid").filter(state="1").filter(
+                    mystep = c_process[0].step_set.order_by("sort").filter(state="1").filter(
                         intertype__in=["node", "task"])
                 else:
-                    mystep = current_process.step_set.order_by("drwaid").filter(state="1").filter(
+                    mystep = current_process.step_set.order_by("sort").filter(state="1").filter(
                         intertype__in=["node", "task"])
 
                 if mysteps:
@@ -629,7 +629,7 @@ def index(request, funid):
                 curren_processrun_info_list.append(current_processrun_dict)
 
         # 系统切换成功率
-        all_processes = Process.objects.exclude(state="9").filter(type="falconstor")
+        all_processes = Process.objects.exclude(state="9").filter(type="falconstor", level=1)
         process_success_rate_list = []
         if all_processes:
             for process in all_processes:
@@ -2781,21 +2781,28 @@ def process_design(request, funid):
 
 def process_data(request):
     if request.user.is_authenticated() and request.session['isadmin']:
+        process_level = request.GET.get("process_level", "")
         result = []
-        all_process = Process.objects.exclude(state="9").filter(type="falconstor").order_by("sort").values()
-        if (len(all_process) > 0):
+        if not process_level or process_level == "0":
+            all_process = Process.objects.exclude(state="9").filter(type="falconstor").order_by("sort")
+        else:
+            all_process = Process.objects.exclude(state="9").filter(type="falconstor", level=int(process_level)).order_by(
+                "sort")
+        if all_process.exists():
             for process in all_process:
                 result.append({
-                    "process_id": process["id"],
-                    "process_code": process["code"],
-                    "process_name": process["name"],
-                    "process_remark": process["remark"],
-                    "process_sign": process["sign"],
-                    "process_rto": process["rto"],
-                    "process_rpo": process["rpo"],
-                    "process_sort": process["sort"],
-                    "process_color": process["color"],
-                    "process_state": "已发布" if process["state"] == "1" else "未发布",
+                    "process_id": process.id,
+                    "process_code": process.code,
+                    "process_name": process.name,
+                    "process_remark": process.remark,
+                    "process_sign": process.sign,
+                    "process_rto": process.rto,
+                    "process_rpo": process.rpo,
+                    "process_sort": process.sort,
+                    "process_color": process.color,
+                    "process_level_key": process.level,
+                    "process_level_value": process.get_level_display(),
+                    "process_state": "已发布" if process.state == "1" else "未发布",
                 })
         return JsonResponse({"data": result})
 
@@ -2813,6 +2820,7 @@ def process_save(request):
             rpo = request.POST.get('rpo', '')
             sort = request.POST.get('sort', '')
             color = request.POST.get('color', '')
+            level = request.POST.get('level', '')
             try:
                 id = int(id)
             except:
@@ -2826,37 +2834,18 @@ def process_save(request):
                     if sign.strip() == '':
                         result["res"] = '是否签到不能为空。'
                     else:
-                        # if color.strip() == "":
-                        #     result["res"] = '项目图标配色不能为空。'
-                        # else:
-                        if id == 0:
-                            all_process = Process.objects.filter(code=code).exclude(
-                                state="9").filter(type="falconstor")
-                            if (len(all_process) > 0):
-                                result["res"] = '预案编码:' + code + '已存在。'
-                            else:
-                                processsave = Process()
-                                processsave.url = '/falconstor'
-                                processsave.type = 'falconstor'
-                                processsave.code = code
-                                processsave.name = name
-                                processsave.remark = remark
-                                processsave.sign = sign
-                                processsave.rto = rto if rto else None
-                                processsave.rpo = rpo if rpo else None
-                                processsave.sort = sort if sort else None
-                                processsave.color = color
-                                processsave.save()
-                                result["res"] = "保存成功。"
-                                result["data"] = processsave.id
+                        if level.strip() == "":
+                            result["res"] = '流程级别不能为空。'
                         else:
-                            all_process = Script.objects.filter(code=code).exclude(
-                                id=id).exclude(state="9")
-                            if (len(all_process) > 0):
-                                result["res"] = '预案编码:' + code + '已存在。'
-                            else:
-                                try:
-                                    processsave = Process.objects.get(id=id)
+                            if id == 0:
+                                all_process = Process.objects.filter(code=code).exclude(
+                                    state="9").filter(type="falconstor")
+                                if (len(all_process) > 0):
+                                    result["res"] = '预案编码:' + code + '已存在。'
+                                else:
+                                    processsave = Process()
+                                    processsave.url = '/falconstor'
+                                    processsave.type = 'falconstor'
                                     processsave.code = code
                                     processsave.name = name
                                     processsave.remark = remark
@@ -2865,11 +2854,33 @@ def process_save(request):
                                     processsave.rpo = rpo if rpo else None
                                     processsave.sort = sort if sort else None
                                     processsave.color = color
+                                    processsave.level = level
                                     processsave.save()
                                     result["res"] = "保存成功。"
                                     result["data"] = processsave.id
-                                except:
-                                    result["res"] = "修改失败。"
+                            else:
+                                all_process = Script.objects.filter(code=code).exclude(
+                                    id=id).exclude(state="9")
+
+                                if all_process.exists():
+                                    try:
+                                        processsave = Process.objects.get(id=id)
+                                        processsave.code = code
+                                        processsave.name = name
+                                        processsave.remark = remark
+                                        processsave.sign = sign
+                                        processsave.rto = rto if rto else None
+                                        processsave.rpo = rpo if rpo else None
+                                        processsave.sort = sort if sort else None
+                                        processsave.color = color
+                                        processsave.level = level
+                                        processsave.save()
+                                        result["res"] = "保存成功。"
+                                        result["data"] = processsave.id
+                                    except:
+                                        result["res"] = "修改失败。"
+                                else:
+                                    result["res"] = "预案不存在"
         return HttpResponse(json.dumps(result))
 
 
@@ -2897,7 +2908,7 @@ def processdraw(request, offset, funid):
         except:
             raise Http404()
         process = Process.objects.get(id=id)
-        allprocess = Process.objects.exclude(state="9")
+        allprocess = Process.objects.exclude(state="9").filter(type="falconstor")
         allgroup = Group.objects.exclude(state="9")
         return render(request, 'processdraw.html',
                       {'username': request.user.last_name + request.user.first_name
@@ -2915,7 +2926,13 @@ def getprocess(request):
         except:
             raise Http404()
         result = {}
-        myprocess = Process.objects.get(id=pid)
+        myprocess = Process.objects.filter(id=pid)
+
+        if myprocess.exists():
+            myprocess = myprocess[0]
+        else:
+            raise Http404()
+
         result["title"] = myprocess.id
         result["nodes"] = {}
         result["lines"] = {}
@@ -3076,18 +3093,6 @@ def processdrawsave(request):
                                 pass
                             try:
                                 mystep[0].rto_count_in = nodes[nodeskey]["rto_count_in"]
-                            except:
-                                pass
-
-                            # sort
-                            try:
-                                mystep[0].sort = num
-                            except:
-                                pass
-
-                            # last_id
-                            try:
-                                mystep[0].last_id = last_id
                             except:
                                 pass
 
@@ -3298,6 +3303,32 @@ def processdrawsave(request):
                             savestep.type = "areas"
                             savestep.process = myprocess
                             savestep.save()
+
+            # 将步骤存入一个sort排序字段取代drawid
+            # 1.当前流程的start节点
+            start_step = myprocess.step_set.filter(state="1", intertype__contains="start")[0]
+
+            line_step = \
+                myprocess.step_set.filter(state="1", type="lines",
+                                          fromnode="demo_node_" + str(start_step.drwaid).zfill(10))[0]
+            to_node = int(line_step.tonode.split("demo_node_")[1])
+            current_step = \
+                myprocess.step_set.filter(state="1", drwaid=to_node, intertype__in=["node", "task", "complex"])
+
+            if current_step.exists():
+                current_step = current_step[0]
+                # 第一步
+                current_step.sort = 0
+                current_step.save()
+
+                next_step = current_step
+                # 循环后面步骤
+                for i in range(1, len(nodes) + 1):
+                    next_steps = sort_c_process_steps(myprocess, next_step)
+                    if next_steps.exists():
+                        next_step = next_steps[0]
+                        next_step.sort = i
+                        next_step.save()
 
             return HttpResponse("保存成功,请重新发布")
 
@@ -3689,7 +3720,7 @@ def getrunsetps(request):
                 # 1.遍历出子流程/步骤 如果是步骤,构造步骤信息 如果是子流程:name
                 current_process = processruns[0].process
                 c_process_steps = current_process.step_set.filter(state="1").filter(
-                    intertype__in=["complex", "node", "task"]).order_by("drwaid")
+                    intertype__in=["complex", "node", "task"]).order_by("sort")
                 for step in c_process_steps:
                     runid = 0
                     starttime = ""
@@ -3705,7 +3736,36 @@ def getrunsetps(request):
                     scripts = []
                     verifyitems = []
                     if step.intertype == "complex":
-                        pass
+                        # 状态
+                        sub_process = step.sub_process
+                        sub_process_id = int(sub_process)
+                        c_process = Process.objects.filter(state="1", id=sub_process_id)
+                        if c_process.exists():
+                            c_process = c_process[0]
+                            steps = c_process.step_set.filter(state="1", intertype__in=["node", "task", "complex"])
+                            done_num = 0
+                            run_num = 0
+                            edit_num = 0
+                            for c_step in steps:
+                                c_step_run = c_step.steprun_set.filter(processrun=processruns[0])
+                                if c_step_run.exists():
+                                    c_step_run = c_step_run[0]
+                                    # 完成
+                                    if c_step_run.state == "DONE":
+                                        done_num += 1
+                                    # 运行
+                                    if c_step_run.state in ["RUN", "ERROR", "CONFIRM"]:
+                                        run_num += 1
+                                    # 运行（没有RUN只有EDIT的时候）
+                                    if c_step_run.state == "EDIT":
+                                        edit_num += 1
+
+                            if done_num == len(steps):
+                                state = "DONE"
+                            elif run_num > 0:
+                                state = "RUN"
+                            else:
+                                state = ""
                     else:
                         # 步骤信息
                         steprunlist = step.steprun_set.filter(processrun=processruns[0])
@@ -3819,8 +3879,6 @@ def getrunsetps(request):
                                    "state": state, "scripts": scripts, "verifyitems": verifyitems,
                                    "note": note, "rto": rto,
                                    "children": getchildrensteps(processruns[0], step.sub_process, step.intertype)})
-            # with open("steprun1.json", "w") as f:
-            #     f.write(json.dumps(processresult))
             return HttpResponse(json.dumps(processresult))
 
 
@@ -4306,7 +4364,7 @@ def show_result(request):
         step_info_list = []
 
         c_process = current_processrun.process
-        p_steps = c_process.step_set.order_by("drwaid").filter(state="1", intertype__in=["node", "task", "complex"])
+        p_steps = c_process.step_set.order_by("sort").filter(state="1", intertype__in=["node", "task", "complex"])
 
         for num, p_step in enumerate(p_steps):
             # rto, step_name, end_time, operator, start_time, inner_step_list
@@ -4629,8 +4687,9 @@ def custom_pdf_report(request):
         first_el_dict["operator"] = r"{0}".format(operators[:-1])
         first_el_dict["run_reason"] = r"{0}".format(run_reason)
 
-        # 构造第二章数据: step_info_list
+        # modify *************************************
         step_info_list = []
+
         pnode_steplist = Step.objects.exclude(state="9").filter(process_id=process_id).order_by("sort").filter(
             pnode_id=None)
         for num, pstep in enumerate(pnode_steplist):
@@ -4827,6 +4886,8 @@ def custom_pdf_report(request):
                     inner_step_list.append(inner_second_el_dict)
             second_el_dict['inner_step_list'] = inner_step_list
             step_info_list.append(second_el_dict)
+
+        # *********************************************
 
         # return render(request, "pdf.html", locals())
         t = TemplateResponse(request, 'pdf.html',

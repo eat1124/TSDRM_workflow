@@ -9,20 +9,13 @@ $(document).ready(function () {
             {"data": "code"},
             {"data": "name"},
             {"data": "ip"},
-            // {"data": "port"},
             {"data": "type"},
-            // {"data": "runtype"},
             {"data": "filename"},
-            // {"data": "time"},
             {"data": "username"},
             {"data": "password"},
-            // {"data": "paramtype"},
-            // {"data": "param"},
             {"data": "scriptpath"},
             {"data": "success_text"},
             {"data": "log_address"},
-            // {"data": "runpath"},
-            // {"data": "maxtime"},
             {"data": null}
         ],
 
@@ -31,33 +24,13 @@ $(document).ready(function () {
             "data": null,
             "width": "100px",
             "defaultContent": "<button  id='edit' title='编辑' data-toggle='modal'  data-target='#static'  class='btn btn-xs btn-primary' type='button'><i class='fa fa-edit'></i></button><button title='删除'  id='delrow' class='btn btn-xs btn-primary' type='button'><i class='fa fa-trash-o'></i></button>"
+        }, {
+            "targets": [-5],
+            "visible": false
+        }, {
+            "targets": [-8],
+            "visible": false
         },
-            //     {
-            //     "targets": [-2],
-            //     "visible": false
-            // }, {
-            //     "targets": [-3],
-            //     "visible": false
-            // },
-            {
-                "targets": [-5],
-                "visible": false
-            },
-            //     {
-            //     "targets": [-6],
-            //     "visible": false
-            // }, {
-            //     "targets": [-7],
-            //     "visible": false
-            // },
-            {
-                "targets": [-8],
-                "visible": false
-            },
-            // {
-            //     "targets": [-9],
-            //     "visible": false
-            // }
         ],
         "oLanguage": {
             "sLengthMenu": "每页显示 _MENU_ 条记录",
@@ -92,8 +65,7 @@ $(document).ready(function () {
                     if (data == 1) {
                         table.ajax.reload();
                         alert("删除成功！");
-                    }
-                    else
+                    } else
                         alert("删除失败，请于管理员联系。");
                 },
                 error: function (e) {
@@ -110,21 +82,13 @@ $(document).ready(function () {
         $("#code").val(data.code);
         $("#name").val(data.name);
         $("#ip").val(data.ip);
-        // $("#port").val(data.port);
-        // $("#type").val(data.type);
-        // $("#runtype").val(data.runtype);
         $("#username").val(data.username);
         $("#password").val(data.password);
         $("#filename").val(data.filename);
-        // $("#paramtype").val(data.paramtype);
-        // $("#param").val(data.param);
         $("#scriptpath").val(data.scriptpath);
-        // $("#runpath").val(data.runpath);
-        // $("#command").val("cd " + $("#scriptpath").val() + ";" + $("#runpath").val() + "/" + $("#filename").val() + " " + $("#param").val());
-        // $("#maxtime").val(data.maxtime);
-        // $("#time").val(data.time);
         $("#success_text").val(data.success_text);
         $("#log_address").val(data.log_address);
+        $("#type").val(data.type);
     });
 
     $("#new").click(function () {
@@ -132,17 +96,10 @@ $(document).ready(function () {
         $("#code").val("");
         $("#name").val("");
         $("#ip").val("");
-        // $("#port").val("");
         $("#username").val("");
         $("#password").val("");
         $("#filename").val("");
-        // $("#paramtype").val("无");
-        // $("#param").val("");
         $("#scriptpath").val("");
-        // $("#runpath").val("");
-        // $("#command").val("");
-        // $("#maxtime").val("");
-        // $("#time").val("");
         $("#success_text").val("");
         $("#log_address").val("");
 
@@ -161,18 +118,11 @@ $(document).ready(function () {
                     code: $("#code").val(),
                     name: $("#name").val(),
                     ip: $("#ip").val(),
-                    // port: $("#port").val(),
                     type: $("#type").val(),
-                    // runtype: $("#runtype").val(),
                     username: $("#username").val(),
                     password: $("#password").val(),
                     filename: $("#filename").val(),
-                    // paramtype: $("#paramtype").val(),
-                    // param: $("#param").val(),
                     scriptpath: $("#scriptpath").val(),
-                    // runpath: $("#runpath").val(),
-                    // maxtime: $("#maxtime").val(),
-                    // time: $("#time").val(),
                     success_text: $("#success_text").val(),
                     log_address: $("#log_address").val(),
                 },
@@ -190,21 +140,7 @@ $(document).ready(function () {
                 alert("页面出现错误，请于管理员联系。");
             }
         });
-    })
-
-    //
-    // $('#filename').change(function () {
-    //     $("#command").val("cd " + $("#scriptpath").val() + ";" + $("#runpath").val() + "/" + $("#filename").val() + " " + $("#param").val());
-    // })
-    // $('#scriptpath').change(function () {
-    //     $("#command").val("cd " + $("#scriptpath").val() + ";" + $("#runpath").val() + "/" + $("#filename").val() + " " + $("#param").val());
-    // })
-    // $('#runpath').change(function () {
-    //     $("#command").val("cd " + $("#scriptpath").val() + ";" + $("#runpath").val() + "/" + $("#filename").val() + " " + $("#param").val());
-    // })
-    // $('#param').change(function () {
-    //     $("#command").val("cd " + $("#scriptpath").val() + ";" + $("#runpath").val() + "/" + $("#filename").val() + " " + $("#param").val());
-    // })
+    });
     $('#error').click(function () {
         $(this).hide()
     })

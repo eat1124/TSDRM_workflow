@@ -377,7 +377,7 @@ def exec_process(processrunid):
             line_step = \
                 process.step_set.filter(state="1", type="lines",
                                         fromnode="demo_node_" + str(start_step.drwaid).zfill(10))[0]
-            to_node = line_step.tonode.split("demo_node_")[1]
+            to_node = int(line_step.tonode.split("demo_node_")[1])
             current_step = \
                 process.step_set.filter(state="1", drwaid=to_node, intertype__in=["node", "task", "complex"])[0]
             end_step_tag = run_all_steps(current_step, processrun)
