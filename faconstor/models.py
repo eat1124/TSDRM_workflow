@@ -116,6 +116,7 @@ class ProcessRun(models.Model):
     state = models.CharField("状态", blank=True, null=True, max_length=20)
     run_reason = models.CharField("启动原因", blank=True, null=True, max_length=2500)
     note = models.CharField("记录", blank=True, null=True, max_length=5000)
+    rto = models.IntegerField("RTO", blank=True, null=True, default=0)
 
 
 class StepRun(models.Model):

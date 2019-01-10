@@ -387,7 +387,7 @@ def get_process_index_data(request):
             # 构造所有步骤
             sub_processes = current_process.step_set.order_by("sort").filter(state="1").filter(
                 intertype__in=["node", "task", "complex"]).values_list("sub_process", "intertype")
-            mysteps = ""
+            total_list = []
             for sub_process in sub_processes:
                 if sub_process[1] == "complex":
                     sub_process_id = sub_process[0]
@@ -395,21 +395,22 @@ def get_process_index_data(request):
 
                     mystep = c_process[0].step_set.order_by("sort").filter(state="1").filter(
                         intertype__in=["node", "task"])
+                    for i in mystep:
+                        total_list.append(i)
                 else:
                     mystep = current_process.step_set.order_by("sort").filter(state="1").filter(
                         intertype__in=["node", "task"])
-
-                if mysteps:
-                    mysteps = mysteps | mystep
-                else:
-                    mysteps = mystep
+                    for i in mystep:
+                        total_list.append(i)
             # 最后一个计入RTO的步骤的结束时间作为rtoendtime
             if rtostate == "DONE":
-                last_rto_count_in_step = mysteps.filter(rto_count_in="1").last()
-                last_rto_count_in_step_run = last_rto_count_in_step.steprun_set.filter(processrun=current_processrun)
-                if last_rto_count_in_step_run.exists():
-                    last_rto_count_in_step_run = last_rto_count_in_step_run[0]
-                    rtoendtime = last_rto_count_in_step_run.endtime.strftime('%Y-%m-%d %H:%M:%S')
+                for i in total_list:
+                    if i.rto_count_in == "0":
+                        break
+                    i_step_run = i.steprun_set.filter(processrun=current_processrun)
+                    if i_step_run.exists():
+                        i_step_run = i_step_run[0]
+                        rtoendtime = i_step_run.endtime.strftime('%Y-%m-%d %H:%M:%S')
 
             # 流程需要签字
             if current_processrun.state == "SIGN":
@@ -438,8 +439,8 @@ def get_process_index_data(request):
             }
         else:
             c_step_run_data = {}
-        with open(r"C:\Users\Administrator\Desktop\test.json", "w") as f:
-            f.write(json.dumps(c_step_run_data))
+        # with open(r"C:\Users\Administrator\Desktop\test.json", "w") as f:
+        #     f.write(json.dumps(c_step_run_data))
         return JsonResponse(c_step_run_data)
 
 
@@ -520,18 +521,9 @@ def index(request, funid):
             rto_sum_seconds = 0
 
             for processrun in successful_processruns:
-                all_step_runs = processrun.steprun_set.exclude(step__rto_count_in="0")
-                step_rto = 0
-                if all_step_runs:
-                    for step_run in all_step_runs:
-                        rto = 0
-                        end_time = step_run.endtime
-                        start_time = step_run.starttime
-                        if end_time and start_time:
-                            delta_time = (end_time - start_time)
-                            rto = delta_time.total_seconds()
-                        step_rto += rto
-                rto_sum_seconds += step_rto
+                average_rto = processrun.rto
+                if average_rto:
+                    rto_sum_seconds += average_rto
 
             m, s = divmod(rto_sum_seconds / len(successful_processruns), 60)
             h, m = divmod(m, 60)
@@ -644,35 +636,8 @@ def get_process_rto(request):
                 processrun_rto_obj_list = process.processrun_set.filter(state="DONE")
                 current_rto_list = []
                 for processrun_rto_obj in processrun_rto_obj_list:
-                    all_step_runs = processrun_rto_obj.steprun_set.exclude(state="9").exclude(
-                        step__rto_count_in="0").filter(step__pnode=None)
-                    step_rto = 0
-                    if all_step_runs:
-                        for step_run in all_step_runs:
-                            rto = 0
-                            end_time = step_run.endtime
-                            start_time = step_run.starttime
-                            if end_time and start_time:
-                                delta_time = (end_time - start_time)
-                                rto = delta_time.total_seconds()
-
-                            step_rto += rto
-                    # 扣除子级步骤中可能的rto_count_in的时间
-                    all_inner_step_runs = processrun_rto_obj.steprun_set.exclude(state="9").filter(
-                        step__rto_count_in="0").exclude(
-                        step__pnode=None).filter(step__pnode__rto_count_in="1")
-                    inner_rto_not_count_in = 0
-                    if all_inner_step_runs:
-                        for inner_step_run in all_inner_step_runs:
-                            end_time = inner_step_run.endtime
-                            start_time = inner_step_run.starttime
-                            if end_time and start_time:
-                                delta_time = (end_time - start_time)
-                                rto = delta_time.total_seconds()
-                                inner_rto_not_count_in += rto
-                    step_rto -= inner_rto_not_count_in
-
-                    current_rto = float("%.2f" % (step_rto / 60))
+                    current_rto = processrun_rto_obj.rto
+                    current_rto = float("%.2f" % (current_rto / 60))
 
                     current_rto_list.append(current_rto)
                 process_dict = {
@@ -4489,20 +4454,41 @@ def show_result(request):
             "%Y-%m-%d %H:%M:%S") if current_processrun.endtime else ""
 
         # 总环节RTO
-        all_step_runs = current_processrun.steprun_set.filter(step__rto_count_in="1")
-        step_rto = 0
-        if all_step_runs:
-            for step_run in all_step_runs:
-                print(step_run.id)
-                rto = 0
-                end_time = step_run.endtime
-                start_time = step_run.starttime
-                if end_time and start_time:
-                    delta_time = (end_time - start_time)
-                    rto = delta_time.total_seconds()
-                step_rto += rto
+        # rtoendtime
+        sub_processes = c_process.step_set.order_by("sort").filter(state="1").filter(
+            intertype__in=["node", "task", "complex"]).values_list("sub_process", "intertype")
+        total_list = []
+        for sub_process in sub_processes:
+            if sub_process[1] == "complex":
+                sub_process_id = sub_process[0]
+                my_process = Process.objects.filter(id=int(sub_process_id)).filter(state="1")
 
-        m, s = divmod(step_rto, 60)
+                mystep = my_process[0].step_set.order_by("sort").filter(state="1").filter(
+                    intertype__in=["node", "task"])
+                for i in mystep:
+                    total_list.append(i)
+            else:
+                mystep = c_process.step_set.order_by("sort").filter(state="1").filter(
+                    intertype__in=["node", "task"])
+                for i in mystep:
+                    total_list.append(i)
+        # 最后一个计入RTO的步骤的结束时间作为rtoendtime
+        rtoendtime = ""
+        for i in total_list:
+            if i.rto_count_in == "0":
+                break
+            i_step_run = i.steprun_set.filter(processrun=current_processrun)
+            if i_step_run.exists():
+                i_step_run = i_step_run[0]
+                rtoendtime = i_step_run.endtime
+
+        start_time = current_processrun.starttime
+        end_time = rtoendtime
+        rto = 0
+        if end_time and start_time:
+            delta_time = (end_time - start_time)
+            rto = delta_time.total_seconds()
+        m, s = divmod(rto, 60)
         h, m = divmod(m, 60)
         show_result_dict["rto"] = "%d时%02d分%02d秒" % (h, m, s)
 

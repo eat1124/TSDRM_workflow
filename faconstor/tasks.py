@@ -211,8 +211,8 @@ def run_all_steps(current_step, processrun):
                 for task in all_done_tasks:
                     task.state = "1"
                     task.save()
-
-                c_step_run.starttime = datetime.datetime.now()
+                if not c_step_run.starttime:
+                    c_step_run.starttime = datetime.datetime.now()
                 # 将错误状态修改成执行中
                 c_step_run.state = "RUN"
                 c_step_run.save()
@@ -299,7 +299,6 @@ def run_all_steps(current_step, processrun):
                     myprocesstask.steprun_id = c_step_run.id
 
                     myprocesstask.save()
-                    print("确认了*************************")
                     return 2
                 else:
                     c_step_run.state = "DONE"
@@ -413,3 +412,42 @@ def exec_process(processrunid):
         myprocesstask.state = "1"
         myprocesstask.content = "流程结束。"
         myprocesstask.save()
+
+        try:
+            # 将流程RTO写入数据库
+            sub_processes = processrun.process.step_set.order_by("sort").filter(state="1").filter(
+                intertype__in=["node", "task", "complex"]).values_list("sub_process", "intertype")
+            total_list = []
+            for sub_process in sub_processes:
+                if sub_process[1] == "complex":
+                    sub_process_id = sub_process[0]
+                    c_process = Process.objects.filter(id=int(sub_process_id)).filter(state="1")
+
+                    mystep = c_process[0].step_set.order_by("sort").filter(state="1").filter(
+                        intertype__in=["node", "task"])
+                    for i in mystep:
+                        total_list.append(i)
+                else:
+                    mystep = processrun.process.step_set.order_by("sort").filter(state="1").filter(
+                        intertype__in=["node", "task"])
+                    for i in mystep:
+                        total_list.append(i)
+            end_time = ""
+            # 最后一个计入RTO的步骤的结束时间作为rtoendtime
+            for i in total_list:
+                if i.rto_count_in == "0":
+                    break
+                i_step_run = i.steprun_set.filter(processrun=processrun)
+                if i_step_run.exists():
+                    i_step_run = i_step_run[0]
+                    end_time = i_step_run.endtime
+
+            start_time = processrun.starttime
+            rto = 0
+            if end_time and start_time:
+                delta_time = (end_time - start_time)
+                rto = delta_time.total_seconds()
+            processrun.rto = rto
+            processrun.save()
+        except Exception as e:
+            print("RTO存储失败，详细信息：", e)
