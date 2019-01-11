@@ -4392,40 +4392,7 @@ def show_result(request):
             "%Y-%m-%d %H:%M:%S") if current_processrun.endtime else ""
 
         # 总环节RTO
-        # rtoendtime
-        sub_processes = c_process.step_set.order_by("sort").filter(state="1").filter(
-            intertype__in=["node", "task", "complex"]).values_list("sub_process", "intertype")
-        total_list = []
-        for sub_process in sub_processes:
-            if sub_process[1] == "complex":
-                sub_process_id = sub_process[0]
-                my_process = Process.objects.filter(id=int(sub_process_id)).filter(state="1")
-
-                mystep = my_process[0].step_set.order_by("sort").filter(state="1").filter(
-                    intertype__in=["node", "task"])
-                for i in mystep:
-                    total_list.append(i)
-            else:
-                mystep = c_process.step_set.order_by("sort").filter(state="1").filter(
-                    intertype__in=["node", "task"])
-                for i in mystep:
-                    total_list.append(i)
-        # 最后一个计入RTO的步骤的结束时间作为rtoendtime
-        rtoendtime = ""
-        for i in total_list:
-            if i.rto_count_in == "0":
-                break
-            i_step_run = i.steprun_set.filter(processrun=current_processrun)
-            if i_step_run.exists():
-                i_step_run = i_step_run[0]
-                rtoendtime = i_step_run.endtime
-
-        start_time = current_processrun.starttime
-        end_time = rtoendtime
-        rto = 0
-        if end_time and start_time:
-            delta_time = (end_time - start_time)
-            rto = delta_time.total_seconds()
+        rto = current_processrun.rto
         m, s = divmod(rto, 60)
         h, m = divmod(m, 60)
         show_result_dict["rto"] = "%d时%02d分%02d秒" % (h, m, s)
@@ -4522,33 +4489,9 @@ def custom_pdf_report(request):
         first_el_dict["end_time"] = r"{0}".format(
             end_time.strftime("%Y-%m-%d %H:%M:%S") if end_time else "")
 
-        all_step_runs = process_run_obj.steprun_set.exclude(state="9").exclude(step__rto_count_in="0").filter(
-            step__pnode=None)
-        step_rto = 0
-        if all_step_runs:
-            for step_run in all_step_runs:
-                rto = 0
-                end_time = step_run.endtime
-                start_time = step_run.starttime
-                if end_time and start_time:
-                    delta_time = (end_time - start_time)
-                    rto = delta_time.total_seconds()
-                step_rto += rto
-
-        # 扣除子级步骤中可能的rto_count_in的时间
-        all_inner_step_runs = process_run_obj.steprun_set.exclude(state="9").filter(
-            step__rto_count_in="0").exclude(
-            step__pnode=None)
-        inner_rto_not_count_in = 0
-        if all_inner_step_runs:
-            for inner_step_run in all_inner_step_runs:
-                end_time = inner_step_run.endtime
-                start_time = inner_step_run.starttime
-                if end_time and start_time:
-                    delta_time = (end_time - start_time)
-                    rto = delta_time.total_seconds()
-                    inner_rto_not_count_in += rto
-                    step_rto -= inner_rto_not_count_in
+        # RTO
+        # 总环节RTO
+        step_rto = process_run_obj.rto
 
         m, s = divmod(step_rto, 60)
         h, m = divmod(m, 60)
@@ -4588,54 +4531,15 @@ def custom_pdf_report(request):
         first_el_dict["operator"] = r"{0}".format(operators[:-1])
         first_el_dict["run_reason"] = r"{0}".format(run_reason)
 
-        # modify *************************************
         step_info_list = []
 
-        pnode_steplist = Step.objects.exclude(state="9").filter(process_id=process_id).order_by("sort").filter(
-            pnode_id=None)
+        c_process = process_run_obj.process
+        pnode_steplist = c_process.step_set.order_by("sort").filter(state="1",
+                                                                    intertype__in=["node", "task", "complex"])
+
         for num, pstep in enumerate(pnode_steplist):
-            second_el_dict = dict()
-            step_name = "{0}.{1}".format(num + 1, pstep.name)
-            second_el_dict["step_name"] = step_name
-
-            pnode_steprun = StepRun.objects.exclude(state="9").filter(processrun_id=processrun_id).filter(
-                step=pstep)
-            if pnode_steprun:
-                pnode_steprun = pnode_steprun[0]
-                if pnode_steprun.step.rto_count_in == "0":
-                    second_el_dict["start_time"] = ""
-                    second_el_dict["end_time"] = ""
-                    second_el_dict["rto"] = ""
-                else:
-                    second_el_dict["start_time"] = pnode_steprun.starttime.strftime("%Y-%m-%d %H:%M:%S") if \
-                        pnode_steprun.starttime else ""
-                    second_el_dict["end_time"] = pnode_steprun.endtime.strftime(
-                        "%Y-%m-%d %H:%M:%S") if pnode_steprun.endtime else ""
-
-                    if pnode_steprun.endtime and pnode_steprun.starttime:
-                        end_time = pnode_steprun.endtime.strftime("%Y-%m-%d %H:%M:%S")
-                        start_time = pnode_steprun.starttime.strftime("%Y-%m-%d %H:%M:%S")
-                        delta_seconds = datetime.datetime.strptime(end_time,
-                                                                   '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime(
-                            start_time, '%Y-%m-%d %H:%M:%S')
-                        hour, minute, second = str(delta_seconds).split(":")
-
-                        delta_time = "{0}时{1}分{2}秒".format(hour, minute, second)
-
-                        second_el_dict["rto"] = delta_time
-                    else:
-                        second_el_dict["rto"] = ""
-
-            # 步骤负责人
-            try:
-                users = User.objects.filter(username=pnode_steprun.operator)
-            except:
-                if users:
-                    operator = users[0].userinfo.fullname
-                    second_el_dict["operator"] = operator
-                else:
-                    second_el_dict["operator"] = ""
-
+            second_el_dict = {}
+            inner_step_list = []
             # 当前步骤下脚本
             state_dict = {
                 "DONE": "已完成",
@@ -4645,29 +4549,129 @@ def custom_pdf_report(request):
                 "IGNORE": "忽略",
                 "": "",
             }
+            if pstep.intertype == "complex":
+                sup_process_id = pstep.sub_process
+                sub_process = Process.objects.filter(state="1", id=sup_process_id)
 
-            current_scripts = Script.objects.exclude(state="9").filter(step_id=pstep.id)
-            script_list_wrapper = []
-            if current_scripts:
-                for snum, current_script in enumerate(current_scripts):
-                    script_el_dict = dict()
-                    # title
-                    script_name = "{0}.{1}".format("i" * (snum + 1), current_script.name)
-                    script_el_dict["script_name"] = script_name
-                    # content
-                    steprun_id = pnode_steprun.id if pnode_steprun else None
-                    script_id = current_script.id
-                    current_scriptrun_obj = ScriptRun.objects.filter(steprun_id=steprun_id, script_id=script_id)
-                    if current_scriptrun_obj:
-                        current_scriptrun_obj = current_scriptrun_obj[0]
-                        script_el_dict["start_time"] = current_scriptrun_obj.starttime.strftime(
-                            "%Y-%m-%d %H:%M:%S") if current_scriptrun_obj.starttime else ""
-                        script_el_dict["end_time"] = current_scriptrun_obj.endtime.strftime(
-                            "%Y-%m-%d %H:%M:%S") if current_scriptrun_obj.endtime else ""
+                # 子流程下步骤信息
+                if sub_process.exists():
+                    sub_process = sub_process[0]
 
-                        if current_scriptrun_obj.endtime and current_scriptrun_obj.starttime:
-                            end_time = current_scriptrun_obj.endtime.strftime("%Y-%m-%d %H:%M:%S")
-                            start_time = current_scriptrun_obj.starttime.strftime("%Y-%m-%d %H:%M:%S")
+                    p_step_name = sub_process.name
+                    step_name = "{0}.{1}".format(num + 1, p_step_name)
+                    second_el_dict["step_name"] = step_name
+
+                    sub_process_steps = sub_process.step_set.filter(state="1", intertype__in=["node", "task"]).order_by(
+                        "drwaid")
+                    for num, step in enumerate(sub_process_steps):
+                        inner_second_el_dict = {}
+                        step_name = "{0}){1}".format(num + 1, step.name)
+                        inner_second_el_dict["step_name"] = step_name
+                        steprun_obj = StepRun.objects.exclude(state="9").filter(processrun_id=processrun_id).filter(
+                            step=step)
+                        if steprun_obj:
+                            steprun_obj = steprun_obj[0]
+                            if steprun_obj.step.rto_count_in == "0":
+                                inner_second_el_dict["start_time"] = ""
+                                inner_second_el_dict["end_time"] = ""
+                                inner_second_el_dict["rto"] = ""
+                            else:
+                                inner_second_el_dict["start_time"] = steprun_obj.starttime.strftime(
+                                    "%Y-%m-%d %H:%M:%S") if \
+                                    steprun_obj.starttime else ""
+                                inner_second_el_dict["end_time"] = steprun_obj.endtime.strftime(
+                                    "%Y-%m-%d %H:%M:%S") if steprun_obj.endtime else ""
+
+                                if steprun_obj.endtime and steprun_obj.starttime:
+                                    end_time = steprun_obj.endtime.strftime("%Y-%m-%d %H:%M:%S")
+                                    start_time = steprun_obj.starttime.strftime("%Y-%m-%d %H:%M:%S")
+                                    delta_seconds = datetime.datetime.strptime(end_time,
+                                                                               '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime(
+                                        start_time, '%Y-%m-%d %H:%M:%S')
+                                    hour, minute, second = str(delta_seconds).split(":")
+
+                                    delta_time = "{0}时{1}分{2}秒".format(hour, minute, second)
+
+                                    inner_second_el_dict["rto"] = delta_time
+                                else:
+                                    inner_second_el_dict["rto"] = ""
+
+                            # 步骤负责人
+                            users = User.objects.filter(username=steprun_obj.operator)
+                            if users:
+                                operator = users[0].userinfo.fullname
+                                inner_second_el_dict["operator"] = operator
+                            else:
+                                inner_second_el_dict["operator"] = ""
+
+                            # 当前步骤下脚本
+                            current_scripts = Script.objects.exclude(state="9").filter(step_id=step.id)
+
+                            script_list_inner = []
+                            if current_scripts:
+                                for snum, current_script in enumerate(current_scripts):
+                                    script_el_dict_inner = dict()
+                                    # title
+                                    script_name = "{0}.{1}".format("i" * (snum + 1), current_script.name)
+                                    script_el_dict_inner["script_name"] = script_name
+
+                                    # content
+                                    steprun_id = steprun_obj.id
+                                    script_id = current_script.id
+                                    current_scriptrun_obj = ScriptRun.objects.filter(steprun_id=steprun_id,
+                                                                                     script_id=script_id)
+                                    if current_scriptrun_obj:
+                                        current_scriptrun_obj = current_scriptrun_obj[0]
+                                        script_el_dict_inner["start_time"] = current_scriptrun_obj.starttime.strftime(
+                                            "%Y-%m-%d %H:%M:%S") if current_scriptrun_obj.starttime else ""
+                                        script_el_dict_inner["end_time"] = current_scriptrun_obj.endtime.strftime(
+                                            "%Y-%m-%d %H:%M:%S") if current_scriptrun_obj.endtime else ""
+
+                                        if current_scriptrun_obj.endtime and current_scriptrun_obj.starttime:
+                                            end_time = current_scriptrun_obj.endtime.strftime("%Y-%m-%d %H:%M:%S")
+                                            start_time = current_scriptrun_obj.starttime.strftime("%Y-%m-%d %H:%M:%S")
+                                            delta_seconds = datetime.datetime.strptime(end_time,
+                                                                                       '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime(
+                                                start_time, '%Y-%m-%d %H:%M:%S')
+                                            hour, minute, second = str(delta_seconds).split(":")
+
+                                            delta_time = "{0}时{1}分{2}秒".format(hour, minute, second)
+
+                                            script_el_dict_inner["rto"] = delta_time
+                                        else:
+                                            script_el_dict_inner["rto"] = ""
+
+                                        state = current_scriptrun_obj.state
+                                        if state in state_dict.keys():
+                                            script_el_dict_inner["state"] = state_dict[state]
+                                        else:
+                                            script_el_dict_inner["state"] = ""
+
+                                        script_el_dict_inner["explain"] = current_scriptrun_obj.explain
+                                    else:
+                                        pass
+                                    script_list_inner.append(script_el_dict_inner)
+                            inner_second_el_dict["script_list_inner"] = script_list_inner
+                        inner_step_list.append(inner_second_el_dict)
+            else:
+                step_name = "{0}.{1}".format(num + 1, pstep.name)
+                second_el_dict["step_name"] = step_name
+                pnode_steprun = pstep.steprun_set.filter(processrun=process_run_obj)
+                if pnode_steprun:
+                    pnode_steprun = pnode_steprun[0]
+                    if pnode_steprun.step.rto_count_in == "0":
+                        second_el_dict["start_time"] = ""
+                        second_el_dict["end_time"] = ""
+                        second_el_dict["rto"] = ""
+                    else:
+                        second_el_dict["start_time"] = pnode_steprun.starttime.strftime("%Y-%m-%d %H:%M:%S") if \
+                            pnode_steprun.starttime else ""
+                        second_el_dict["end_time"] = pnode_steprun.endtime.strftime(
+                            "%Y-%m-%d %H:%M:%S") if pnode_steprun.endtime else ""
+
+                        if pnode_steprun.endtime and pnode_steprun.starttime:
+                            end_time = pnode_steprun.endtime.strftime("%Y-%m-%d %H:%M:%S")
+                            start_time = pnode_steprun.starttime.strftime("%Y-%m-%d %H:%M:%S")
                             delta_seconds = datetime.datetime.strptime(end_time,
                                                                        '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime(
                                 start_time, '%Y-%m-%d %H:%M:%S')
@@ -4675,48 +4679,42 @@ def custom_pdf_report(request):
 
                             delta_time = "{0}时{1}分{2}秒".format(hour, minute, second)
 
-                            script_el_dict["rto"] = delta_time
+                            second_el_dict["rto"] = delta_time
                         else:
-                            script_el_dict["rto"] = ""
+                            second_el_dict["rto"] = ""
 
-                        state = current_scriptrun_obj.state
-                        if state in state_dict.keys():
-                            script_el_dict["state"] = state_dict[state]
-                        else:
-                            script_el_dict["state"] = ""
-                        script_el_dict["explain"] = current_scriptrun_obj.explain
+                # 步骤负责人
+                try:
+                    users = User.objects.filter(username=pnode_steprun.operator)
+                except:
+                    if users:
+                        operator = users[0].userinfo.fullname
+                        second_el_dict["operator"] = operator
+                    else:
+                        second_el_dict["operator"] = ""
 
-                    script_list_wrapper.append(script_el_dict)
-                second_el_dict["script_list_wrapper"] = script_list_wrapper
+                current_scripts = Script.objects.exclude(state="9").filter(step_id=pstep.id)
+                script_list_wrapper = []
+                if current_scripts:
+                    for snum, current_script in enumerate(current_scripts):
+                        script_el_dict = dict()
+                        # title
+                        script_name = "{0}.{1}".format("i" * (snum + 1), current_script.name)
+                        script_el_dict["script_name"] = script_name
+                        # content
+                        steprun_id = pnode_steprun.id if pnode_steprun else None
+                        script_id = current_script.id
+                        current_scriptrun_obj = ScriptRun.objects.filter(steprun_id=steprun_id, script_id=script_id)
+                        if current_scriptrun_obj:
+                            current_scriptrun_obj = current_scriptrun_obj[0]
+                            script_el_dict["start_time"] = current_scriptrun_obj.starttime.strftime(
+                                "%Y-%m-%d %H:%M:%S") if current_scriptrun_obj.starttime else ""
+                            script_el_dict["end_time"] = current_scriptrun_obj.endtime.strftime(
+                                "%Y-%m-%d %H:%M:%S") if current_scriptrun_obj.endtime else ""
 
-            # 子步骤下相关内容
-            p_id = pstep.id
-            inner_steps = Step.objects.exclude(state="9").filter(process_id=process_id).order_by("sort").filter(
-                pnode_id=p_id)
-
-            inner_step_list = []
-            if inner_steps:
-                for num, step in enumerate(inner_steps):
-                    inner_second_el_dict = dict()
-                    step_name = "{0}){1}".format(num + 1, step.name)
-                    inner_second_el_dict["step_name"] = step_name
-                    steprun_obj = StepRun.objects.exclude(state="9").filter(processrun_id=processrun_id).filter(
-                        step=step)
-                    if steprun_obj:
-                        steprun_obj = steprun_obj[0]
-                        if steprun_obj.step.rto_count_in == "0":
-                            inner_second_el_dict["start_time"] = ""
-                            inner_second_el_dict["end_time"] = ""
-                            inner_second_el_dict["rto"] = ""
-                        else:
-                            inner_second_el_dict["start_time"] = steprun_obj.starttime.strftime("%Y-%m-%d %H:%M:%S") if \
-                                steprun_obj.starttime else ""
-                            inner_second_el_dict["end_time"] = steprun_obj.endtime.strftime(
-                                "%Y-%m-%d %H:%M:%S") if steprun_obj.endtime else ""
-
-                            if steprun_obj.endtime and steprun_obj.starttime:
-                                end_time = steprun_obj.endtime.strftime("%Y-%m-%d %H:%M:%S")
-                                start_time = steprun_obj.starttime.strftime("%Y-%m-%d %H:%M:%S")
+                            if current_scriptrun_obj.endtime and current_scriptrun_obj.starttime:
+                                end_time = current_scriptrun_obj.endtime.strftime("%Y-%m-%d %H:%M:%S")
+                                start_time = current_scriptrun_obj.starttime.strftime("%Y-%m-%d %H:%M:%S")
                                 delta_seconds = datetime.datetime.strptime(end_time,
                                                                            '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime(
                                     start_time, '%Y-%m-%d %H:%M:%S')
@@ -4724,71 +4722,22 @@ def custom_pdf_report(request):
 
                                 delta_time = "{0}时{1}分{2}秒".format(hour, minute, second)
 
-                                inner_second_el_dict["rto"] = delta_time
+                                script_el_dict["rto"] = delta_time
                             else:
-                                inner_second_el_dict["rto"] = ""
+                                script_el_dict["rto"] = ""
 
-                        # 步骤负责人
-                        users = User.objects.filter(username=steprun_obj.operator)
-                        if users:
-                            operator = users[0].userinfo.fullname
-                            inner_second_el_dict["operator"] = operator
-                        else:
-                            inner_second_el_dict["operator"] = ""
+                            state = current_scriptrun_obj.state
+                            if state in state_dict.keys():
+                                script_el_dict["state"] = state_dict[state]
+                            else:
+                                script_el_dict["state"] = ""
+                            script_el_dict["explain"] = current_scriptrun_obj.explain
 
-                        # 当前步骤下脚本
-                        current_scripts = Script.objects.exclude(state="9").filter(step_id=step.id)
+                        script_list_wrapper.append(script_el_dict)
+                    second_el_dict["script_list_wrapper"] = script_list_wrapper
 
-                        script_list_inner = []
-                        if current_scripts:
-                            for snum, current_script in enumerate(current_scripts):
-                                script_el_dict_inner = dict()
-                                # title
-                                script_name = "{0}.{1}".format("i" * (snum + 1), current_script.name)
-                                script_el_dict_inner["script_name"] = script_name
-
-                                # content
-                                steprun_id = steprun_obj.id
-                                script_id = current_script.id
-                                current_scriptrun_obj = ScriptRun.objects.filter(steprun_id=steprun_id,
-                                                                                 script_id=script_id)
-                                if current_scriptrun_obj:
-                                    current_scriptrun_obj = current_scriptrun_obj[0]
-                                    script_el_dict_inner["start_time"] = current_scriptrun_obj.starttime.strftime(
-                                        "%Y-%m-%d %H:%M:%S") if current_scriptrun_obj.starttime else ""
-                                    script_el_dict_inner["end_time"] = current_scriptrun_obj.endtime.strftime(
-                                        "%Y-%m-%d %H:%M:%S") if current_scriptrun_obj.endtime else ""
-
-                                    if current_scriptrun_obj.endtime and current_scriptrun_obj.starttime:
-                                        end_time = current_scriptrun_obj.endtime.strftime("%Y-%m-%d %H:%M:%S")
-                                        start_time = current_scriptrun_obj.starttime.strftime("%Y-%m-%d %H:%M:%S")
-                                        delta_seconds = datetime.datetime.strptime(end_time,
-                                                                                   '%Y-%m-%d %H:%M:%S') - datetime.datetime.strptime(
-                                            start_time, '%Y-%m-%d %H:%M:%S')
-                                        hour, minute, second = str(delta_seconds).split(":")
-
-                                        delta_time = "{0}时{1}分{2}秒".format(hour, minute, second)
-
-                                        script_el_dict_inner["rto"] = delta_time
-                                    else:
-                                        script_el_dict_inner["rto"] = ""
-
-                                    state = current_scriptrun_obj.state
-                                    if state in state_dict.keys():
-                                        script_el_dict_inner["state"] = state_dict[state]
-                                    else:
-                                        script_el_dict_inner["state"] = ""
-
-                                    script_el_dict_inner["explain"] = current_scriptrun_obj.explain
-                                else:
-                                    pass
-                                script_list_inner.append(script_el_dict_inner)
-                        inner_second_el_dict["script_list_inner"] = script_list_inner
-                    inner_step_list.append(inner_second_el_dict)
             second_el_dict['inner_step_list'] = inner_step_list
             step_info_list.append(second_el_dict)
-
-        # *********************************************
 
         # return render(request, "pdf.html", locals())
         t = TemplateResponse(request, 'pdf.html',
