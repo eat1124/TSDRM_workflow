@@ -2788,7 +2788,7 @@ def processdraw(request, offset, funid):
         except:
             raise Http404()
         process = Process.objects.get(id=id)
-        allprocess = Process.objects.exclude(state="9").filter(type="falconstor")
+        allprocess = Process.objects.exclude(state="9").filter(type="falconstor", level=2)
         allgroup = Group.objects.exclude(state="9")
         return render(request, 'processdraw.html',
                       {'username': request.user.last_name + request.user.first_name
