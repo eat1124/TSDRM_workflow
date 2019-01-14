@@ -2659,6 +2659,11 @@ def process_design(request, funid):
 
 
 def process_data(request):
+    """
+    区分子父流程/默认流程
+    :param request:
+    :return:
+    """
     if request.user.is_authenticated() and request.session['isadmin']:
         process_level = request.GET.get("process_level", "")
         result = []
@@ -2711,11 +2716,11 @@ def process_save(request):
                 if name.strip() == '':
                     result["res"] = '预案名称不能为空。'
                 else:
-                    if sign.strip() == '':
-                        result["res"] = '是否签到不能为空。'
+                    if level.strip() == "":
+                        result["res"] = '流程级别不能为空。'
                     else:
-                        if level.strip() == "":
-                            result["res"] = '流程级别不能为空。'
+                        if sign.strip() == '':
+                            result["res"] = '是否签到不能为空。'
                         else:
                             if id == 0:
                                 all_process = Process.objects.filter(code=code).exclude(
@@ -2735,13 +2740,12 @@ def process_save(request):
                                     processsave.sort = sort if sort else None
                                     processsave.color = color
                                     processsave.level = level
+                                    processsave.state = "0"
                                     processsave.save()
                                     result["res"] = "保存成功。"
                                     result["data"] = processsave.id
                             else:
-                                all_process = Script.objects.filter(code=code).exclude(
-                                    id=id).exclude(state="9")
-
+                                all_process = Process.objects.filter(id=id).exclude(state="9")
                                 if all_process.exists():
                                     try:
                                         processsave = Process.objects.get(id=id)
@@ -2882,7 +2886,10 @@ def getprocess(request):
 
 def processdrawsave(request):
     """
-    保存流程步骤 : last_id
+    state:
+        "1" 已发布
+        "0" 未发布
+        "9" 已删除
     :param request:
     :return:
     """
@@ -2893,6 +2900,7 @@ def processdrawsave(request):
             lines = res["lines"]
             areas = res["areas"]
             pid = res["title"]
+            print(nodes)
             try:
                 pid = int(pid)
             except:
@@ -2907,7 +2915,6 @@ def processdrawsave(request):
             if len(nodes) > 0:
                 nodeskeys = nodes.keys()
                 if len(nodeskeys) > 0:
-                    last_id = None
                     for num, nodeskey in enumerate(nodeskeys):
                         # 根据步骤位置id遍历，保存信息
                         drwaid = int(nodeskey.replace("demo_node_", ""))
@@ -2978,10 +2985,6 @@ def processdrawsave(request):
 
                             mystep[0].state = "1"
                             mystep[0].save()
-
-                            # last_id变动
-                            if num != 0:
-                                last_id = mystep[0].id
                         else:
                             savestep = Step()
                             savestep.drwaid = drwaid
@@ -3042,25 +3045,11 @@ def processdrawsave(request):
                                 mystep[0].rto_count_in = nodes[nodeskey]["rto_count_in"]
                             except:
                                 pass
-                            # sort
-                            try:
-                                savestep.sort = num
-                            except:
-                                pass
-
-                            # last_id
-                            try:
-                                savestep.last_id = last_id
-                            except:
-                                pass
 
                             savestep.state = "1"
                             savestep.type = "nodes"
                             savestep.process = myprocess
                             savestep.save()
-                            # last_id变动
-                            if num != 0:
-                                last_id = savestep.id
 
             if len(lines) > 0:
                 lineskeys = lines.keys()

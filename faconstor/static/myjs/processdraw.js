@@ -222,9 +222,10 @@ $(function () {
             demo.$nodeData[id].time = $("#time").val();
             demo.$nodeData[id].nodetype = $("#nodetype").val();
 
-            if (demo.$nodeData[id].type == 'complex')
+            if (demo.$nodeData[id].type == 'complex'){
                 demo.$nodeData[id].sub_process = $("#process").val();
-            else {
+                demo.$nodeData[id].name = $("#process").find("option:selected").text();
+            } else {
                 demo.$nodeData[id].name = $("#name").val();
                 demo.$nodeData[id].approval = $("#approval").val();
                 demo.$nodeData[id].remark = $("#remark").val();
@@ -255,7 +256,7 @@ $(function () {
             var type = $("#type").val();
             if (type == 'node') {
                 demo.$nodeData[id].code = $("#code").val();
-                if ($("#process").val()) {
+                if (demo.$nodeData[id].type == "complex") {
                     demo.$nodeData[id].name = $("#process option:selected").text();
                 } else {
                     demo.$nodeData[id].name = $("#name").val();
@@ -351,7 +352,6 @@ $(function () {
         }
     });
 
-
     // 脚本管理
     $('#se_1').contextmenu({
         target: '#context-menu2',
@@ -424,8 +424,6 @@ $(function () {
                             success: function (data) {
                                 if (data["status"] == 1) {
                                     $("#se_1").find('option:selected').remove();
-                                    console.log(c_script_id);
-                                    console.log(demo.$nodeData[$("#id").val()].stepscript);
                                     delete demo.$nodeData[$("#id").val()].stepscript[c_script_id];
                                     alert("删除成功！");
                                 } else

@@ -124,6 +124,7 @@ $(document).ready(function () {
         $("#copyremark").val(data.process_remark);
         $("#copy_sort").val(data.process_sort);
         $("#copy_process_color").val(data.process_color);
+        $("#level").val(data.process_level_key);
         if (data.process_sign == "1") {
             $('input:radio[name=copyradio2]')[0].checked = true;
         } else {
