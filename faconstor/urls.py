@@ -36,6 +36,12 @@ urlpatterns = [
     url(r'^fundel/$', fundel),
     url(r'^funmove/$', funmove),
 
+    # 场景管理
+    url(r'^scene/$', scene, {'funid': '70'}),
+    url(r'^scenedel/$', scenedel),
+    url(r'^scenemove/$', scenemove),
+
+
     # 预案管理
     url(r'^script/$', script, {'funid': '32'}),
     url(r'^scriptdata/$', scriptdata),

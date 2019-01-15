@@ -1577,6 +1577,288 @@ def groupsavefuntree(request):
         return HttpResponse("保存成功。")
 
 
+def get_scene_tree(parent, selectid, allprocess):
+    nodes = []
+    children = parent.children.order_by("sort").exclude(state="9").all()
+    for child in children:
+        node = {}
+        node["text"] = child.name
+        node["id"] = child.id
+        node["type"] = "org"
+        noselectprocess = []
+        selectprocess = []
+        allselectprocess = child.process.all()
+        myallprocess = []
+        for process in allprocess:
+            myallprocess.append({"name": process.name, "id": process.id, "code": process.code})
+            if process in allselectprocess:
+                selectprocess.append({"name": process.name, "id": process.id, "code": process.code})
+            else:
+                noselectprocess.append({"name": process.name, "id": process.id, "code": process.code})
+
+        node["data"] = {"code": child.code, "remark": child.remark, "business": child.business,
+                        "application": child.application, "pname": parent.name,
+                        "noselectprocess": noselectprocess, "selectprocess": selectprocess,
+                        "myallprocess": myallprocess}
+        node["children"] = get_scene_tree(child, selectid, allprocess)
+        try:
+            if int(selectid) == child.id:
+                node["state"] = {"selected": True}
+        except:
+            pass
+        nodes.append(node)
+    return nodes
+
+
+def scene(request, funid):
+    """
+    场景管理
+    :param request:
+    :param funid:
+    :return:
+    """
+    if request.user.is_authenticated() and request.session['isadmin']:
+        errors = []
+        title = "请选择场景"
+        selectid = ""
+        id = ""
+        pid = ""
+        pname = ""
+        noselectprocess = []
+        selectprocess = []
+        code = ""
+        name = ""
+        remark = ""
+        business = ""
+        application = ""
+        # hiddendiv = "hidden"
+        hiddendiv = "hidden"
+        allprocess = Process.objects.filter(state="1", level=1)
+
+        if request.method == 'POST':
+            hiddendiv = ""
+            id = request.POST.get('id')
+            pid = request.POST.get('pid')
+            try:
+                id = int(id)
+
+            except:
+                raise Http404()
+            try:
+                pid = int(pid)
+            except:
+                raise Http404()
+            if "save" in request.POST.keys():
+                processlist = request.POST.getlist('my_multi_select1')
+                noselectprocess = []
+                selectprocess = []
+                for process in allprocess:
+                    if str(process.id) in processlist:
+                        selectprocess.append({"name": process.name, "id": process.id, "code": process.code})
+                    else:
+                        noselectprocess.append({"name": process.name, "id": process.id, "code": process.code})
+                pname = request.POST.get('pname')
+                code = request.POST.get('code', '')
+                name = request.POST.get('name', '')
+                remark = request.POST.get('remark', '')
+                business = request.POST.get('business', '')
+                application = request.POST.get('application', '')
+
+                if id == 0:
+                    selectid = pid
+                    title = "新建"
+                    if code.strip() == '':
+                        errors.append('场景编号不能为空。')
+                    else:
+                        if name.strip() == '':
+                            errors.append('场景名称不能为空。')
+                        else:
+                            allscene = Scene.objects.exclude(state="9").filter(code=code)
+                            if (len(allscene) > 0):
+                                errors.append('场景编号:' + code + '已存在。')
+                            else:
+                                try:
+                                    newscene = Scene()
+                                    newscene.code = code
+                                    newscene.name = name
+                                    newscene.remark = remark
+                                    newscene.business = business
+                                    newscene.application = application
+                                    try:
+                                        pscene = Scene.objects.get(id=pid)
+                                    except:
+                                        raise Http404()
+                                    newscene.pnode = pscene
+                                    sort = 1
+                                    try:
+                                        maxscene = Scene.objects.filter(pnode=pscene).latest('sort')
+                                        sort = maxscene.sort + 1
+                                    except:
+                                        pass
+                                    newscene.sort = sort
+                                    newscene.save()
+                                    for process in processlist:
+                                        try:
+                                            process = int(process)
+                                            myprocess = allprocess.get(id=process)
+                                            newscene.process.add(myprocess)
+                                        except ValueError:
+                                            raise Http404()
+                                    title = name
+                                    selectid = newscene.id
+                                    id = newscene.id
+                                except ValueError:
+                                    errors.append('新增失败。')
+                else:
+                    selectid = id
+                    title = name
+                    if code.strip() == '':
+                        errors.append('场景编号不能为空。')
+                    else:
+                        if name.strip() == '':
+                            errors.append('场景名称不能为空。')
+                        else:
+                            allscene = Scene.objects.exclude(state="9").filter(code=code)
+                            if (len(allscene) > 0 and allscene[0].id != id):
+                                errors.append('场景编号:' + code + '已存在。')
+                            else:
+                                try:
+                                    scene = Scene.objects.get(id=id)
+                                    scene.code = code
+                                    scene.name = name
+                                    scene.remark = remark
+                                    scene.business = business
+                                    scene.application = application
+                                    scene.save()
+                                    scene.process.clear()
+                                    for process in processlist:
+                                        try:
+                                            process = int(process)
+                                            myprocess = allprocess.get(id=process)
+                                            scene.process.add(myprocess)
+                                        except ValueError:
+                                            raise Http404()
+                                    title = name
+                                except:
+                                    errors.append('保存失败。')
+
+        treedata = []
+        rootnodes = Scene.objects.order_by("sort").exclude(state="9").filter(pnode=None)
+        if len(rootnodes) > 0:
+            for rootnode in rootnodes:
+                root = {}
+                root["text"] = rootnode.name
+                root["id"] = rootnode.id
+                root["type"] = "org"
+                myallprocess = []
+                for process in allprocess:
+                    myallprocess.append({"name": process.name, "id": process.id, "code": process.code})
+                root["data"] = {"code": rootnode.code, "remark": rootnode.remark, "business": rootnode.business,
+                                "noselectprocess": [], "selectprocess": [],
+                                "application": rootnode.application, "pname": "无", "myallprocess": myallprocess}
+                try:
+                    if int(selectid) == rootnode.id:
+                        root["state"] = {"opened": True, "selected": True}
+                    else:
+                        root["state"] = {"opened": True}
+                except:
+                    root["state"] = {"opened": True}
+                root["children"] = get_scene_tree(rootnode, selectid, allprocess)
+                treedata.append(root)
+        treedata = json.dumps(treedata)
+        return render(request, 'scene.html',
+                      {'username': request.user.userinfo.fullname, 'errors': errors, "id": id,
+                       "pid": pid, "pname": pname, "name": name, "code": code, "remark": remark, "business": business,
+                       "application": application,
+                       "noselectprocess": noselectprocess, "selectprocess": selectprocess, "title": title,
+                       "hiddendiv": hiddendiv, "treedata": treedata, "pagefuns": getpagefuns(funid)})
+    else:
+        return HttpResponseRedirect("/login")
+
+
+def scenedel(request):
+    if request.user.is_authenticated() and request.session['isadmin']:
+        if 'id' in request.POST:
+            id = request.POST.get('id', '')
+            try:
+                id = int(id)
+            except:
+                raise Http404()
+            scene = Scene.objects.get(id=id)
+            scene.state = "9"
+            scene.save()
+            return HttpResponse(1)
+        else:
+            return HttpResponse(0)
+
+
+def scenemove(request):
+    if request.user.is_authenticated() and request.session['isadmin']:
+        if 'id' in request.POST:
+            id = request.POST.get('id', '')
+            parent = request.POST.get('parent', '')
+            old_parent = request.POST.get('old_parent', '')
+            position = request.POST.get('position', '')
+            old_position = request.POST.get('old_position', '')
+            try:
+                id = int(id)
+            except:
+                raise Http404()
+            try:
+                parent = int(parent)
+            except:
+                raise Http404()
+            try:
+                position = int(position)
+            except:
+                raise Http404()
+            try:
+                parent = int(parent)
+            except:
+                raise Http404()
+            try:
+                old_position = int(old_position)
+            except:
+                raise Http404()
+            oldpscene = Scene.objects.get(id=old_parent)
+            oldsort = old_position + 1
+            oldscenes = Scene.objects.filter(pnode=oldpscene).filter(sort__gt=oldsort)
+
+            pscene = Scene.objects.get(id=parent)
+            sort = position + 1
+            scenes = Scene.objects.filter(pnode=pscene).filter(sort__gte=sort).exclude(id=id)
+
+            myscene = Scene.objects.get(id=id)
+            scenesame = Scene.objects.filter(pnode=pscene).filter(name=myscene.name).exclude(id=id)
+            if (len(scenesame) > 0):
+                return HttpResponse("重名")
+            else:
+                if (len(oldscenes) > 0):
+                    for oldscene in oldscenes:
+                        try:
+                            oldscene.sort = oldscene.sort - 1
+                            oldscene.save()
+                        except:
+                            pass
+                if (len(scenes) > 0):
+                    for scene in scenes:
+                        try:
+                            scene.sort = scene.sort + 1
+                            scene.save()
+                        except:
+                            pass
+                try:
+                    myscene.pnode = pscene
+                    myscene.sort = sort
+                    myscene.save()
+                except:
+                    pass
+                if parent != old_parent:
+                    return HttpResponse(pscene.name + "^" + str(pscene.id))
+                else:
+                    return HttpResponse("0")
+
+
 def script(request, funid):
     if request.user.is_authenticated() and request.session['isadmin']:
         errors = []

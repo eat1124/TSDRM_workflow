@@ -38,6 +38,18 @@ class UserInfo(models.Model):
     forgetpassword = models.CharField("修改密码地址", blank=True, null=True, max_length=50)
 
 
+class Scene(models.Model):
+    process = models.ManyToManyField("Process")
+    pnode = models.ForeignKey('self', blank=True, null=True, related_name='children', verbose_name='父节点')
+    code = models.CharField("场景编号", blank=True, max_length=50)
+    name = models.CharField("场景名称", blank=True, null=True, max_length=50)
+    remark = models.CharField("场景描述", blank=True, null=True, max_length=5000)
+    business = models.CharField("影响业务", blank=True, null=True, max_length=5000)
+    application = models.CharField("影响应用", blank=True, null=True, max_length=5000)
+    state = models.CharField("状态", blank=True, null=True, max_length=20)
+    sort = models.IntegerField("排序", blank=True, null=True)
+
+
 class Process(models.Model):
     code = models.CharField("预案编号", blank=True, max_length=50)
     name = models.CharField("预案名称", blank=True, max_length=50)
