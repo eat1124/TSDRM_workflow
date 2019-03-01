@@ -411,7 +411,6 @@ def custom_all_steps(process):
     for sub_process in sub_processes:
         if sub_process[1] == "complex":
             sub_process_id = sub_process[0]
-            print("***********", sub_process_id)
             c_process = Process.objects.filter(id=int(sub_process_id)).filter(state="1")
 
             mystep = c_process[0].step_set.filter(state="1").filter(

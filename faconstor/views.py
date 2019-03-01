@@ -5456,7 +5456,6 @@ def save_invitation(request):
                                 result["data"] = current_process_run_id
                                 result["res"] = "流程计划成功，待开启流程。"
                             else:
-                                print(process[0].state, type(process[0].state))
                                 result["res"] = "流程未发布，不能执行计划操作！"
             else:
                 result["res"] = "演练结束时间必须填写！"
