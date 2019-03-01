@@ -620,7 +620,7 @@ def get_daily_processrun(request):
                     "end_time": process_run_invited.endtime,
                     "process_color": process_run_invited.process.color,
                     "process_run_id": process_run_invited.id,
-                    "url": "/falconstorswitch/12",
+                    "url": "/falconstorswitch/{0}".format(process_run_invited.process_id),
                     "invite": "1"
                 }
                 process_success_rate_list.append(invitations_dict)
@@ -3602,92 +3602,95 @@ def falconstorrun(request):
                 if (len(planning_process) > 0):
                     result["res"] = '流程启动失败，计划流程未执行，务必先完成计划流程。'
                 else:
-                    myprocessrun = ProcessRun()
-                    myprocessrun.process = process[0]
-                    myprocessrun.starttime = datetime.datetime.now()
-                    myprocessrun.creatuser = request.user.username
-                    myprocessrun.run_reason = run_reason
-                    myprocessrun.state = "RUN"
-                    myprocessrun.DataSet_id = 89
-                    myprocessrun.save()
+                    if process[0].state == "1":
+                        myprocessrun = ProcessRun()
+                        myprocessrun.process = process[0]
+                        myprocessrun.starttime = datetime.datetime.now()
+                        myprocessrun.creatuser = request.user.username
+                        myprocessrun.run_reason = run_reason
+                        myprocessrun.state = "RUN"
+                        myprocessrun.DataSet_id = 89
+                        myprocessrun.save()
 
-                    # ************************************************* 1.子流程下所有步骤都要生成对应的StepRun.
-                    mysteps = custom_all_steps(process[0])
+                        # ************************************************* 1.子流程下所有步骤都要生成对应的StepRun.
+                        mysteps = custom_all_steps(process[0])
 
-                    if not mysteps:
-                        result["res"] = '流程启动失败，没有找到可用步骤。'
-                    else:
-                        for num, step in enumerate(mysteps):
-                            # 生成流程步骤
-                            mysteprun = StepRun()
-                            mysteprun.step = step
-                            mysteprun.processrun = myprocessrun
-                            mysteprun.state = "EDIT"
-                            mysteprun.save()
+                        if not mysteps:
+                            result["res"] = '流程启动失败，没有找到可用步骤。'
+                        else:
+                            for num, step in enumerate(mysteps):
+                                # 生成流程步骤
+                                mysteprun = StepRun()
+                                mysteprun.step = step
+                                mysteprun.processrun = myprocessrun
+                                mysteprun.state = "EDIT"
+                                mysteprun.save()
 
-                            myscript = step.script_set.exclude(state="9")
-                            for script in myscript:
-                                # 生成流程脚本
-                                myscriptrun = ScriptRun()
-                                myscriptrun.script = script
-                                myscriptrun.steprun = mysteprun
-                                myscriptrun.state = "EDIT"
-                                myscriptrun.save()
+                                myscript = step.script_set.exclude(state="9")
+                                for script in myscript:
+                                    # 生成流程脚本
+                                    myscriptrun = ScriptRun()
+                                    myscriptrun.script = script
+                                    myscriptrun.steprun = mysteprun
+                                    myscriptrun.state = "EDIT"
+                                    myscriptrun.save()
 
-                            myverifyitems = step.verifyitems_set.exclude(state="9")
-                            for verifyitems in myverifyitems:
-                                # 生成流程确认项
-                                myverifyitemsrun = VerifyItemsRun()
-                                myverifyitemsrun.verify_items = verifyitems
-                                myverifyitemsrun.steprun = mysteprun
-                                myverifyitemsrun.save()
+                                myverifyitems = step.verifyitems_set.exclude(state="9")
+                                for verifyitems in myverifyitems:
+                                    # 生成流程确认项
+                                    myverifyitemsrun = VerifyItemsRun()
+                                    myverifyitemsrun.verify_items = verifyitems
+                                    myverifyitemsrun.steprun = mysteprun
+                                    myverifyitemsrun.save()
 
-                        allgroup = process[0].step_set.exclude(state="9").exclude(Q(group="") | Q(group=None)).values(
-                            "group").distinct()  # 过滤出需要签字的组,但一个对象只发送一次task
+                            allgroup = process[0].step_set.exclude(state="9").exclude(Q(group="") | Q(group=None)).values(
+                                "group").distinct()  # 过滤出需要签字的组,但一个对象只发送一次task
 
-                        if process[0].sign == "1" and len(allgroup) > 0:  # 如果流程需要签字,发送签字tasks
-                            # 将当前流程改成SIGN
-                            c_process_run_id = myprocessrun.id
-                            c_process_run = ProcessRun.objects.filter(id=c_process_run_id)
-                            if c_process_run:
-                                c_process_run = c_process_run[0]
-                                c_process_run.state = "SIGN"
-                                c_process_run.save()
+                            if process[0].sign == "1" and len(allgroup) > 0:  # 如果流程需要签字,发送签字tasks
+                                # 将当前流程改成SIGN
+                                c_process_run_id = myprocessrun.id
+                                c_process_run = ProcessRun.objects.filter(id=c_process_run_id)
+                                if c_process_run:
+                                    c_process_run = c_process_run[0]
+                                    c_process_run.state = "SIGN"
+                                    c_process_run.save()
 
-                            for group in allgroup:
-                                try:
-                                    signgroup = Group.objects.get(id=int(group["group"]))
-                                    groupname = signgroup.name
+                                for group in allgroup:
+                                    try:
+                                        signgroup = Group.objects.get(id=int(group["group"]))
+                                        groupname = signgroup.name
+                                        myprocesstask = ProcessTask()
+                                        myprocesstask.processrun = myprocessrun
+                                        myprocesstask.starttime = datetime.datetime.now()
+                                        myprocesstask.senduser = request.user.username
+                                        myprocesstask.receiveauth = group["group"]
+                                        myprocesstask.type = "SIGN"
+                                        myprocesstask.state = "0"
+                                        myprocesstask.content = "流程即将启动”，请" + groupname + "签到。"
+                                        myprocesstask.save()
+                                    except:
+                                        pass
+                                result["res"] = "新增成功。"
+                                result["data"] = "/"
+
+                            else:
+                                prosssigns = ProcessTask.objects.filter(processrun=myprocessrun, state="0")
+                                if len(prosssigns) <= 0:
                                     myprocesstask = ProcessTask()
                                     myprocesstask.processrun = myprocessrun
                                     myprocesstask.starttime = datetime.datetime.now()
+                                    myprocesstask.type = "INFO"
+                                    myprocesstask.logtype = "START"
+                                    myprocesstask.state = "1"
                                     myprocesstask.senduser = request.user.username
-                                    myprocesstask.receiveauth = group["group"]
-                                    myprocesstask.type = "SIGN"
-                                    myprocesstask.state = "0"
-                                    myprocesstask.content = "流程即将启动”，请" + groupname + "签到。"
+                                    myprocesstask.content = "流程已启动。"
                                     myprocesstask.save()
-                                except:
-                                    pass
-                            result["res"] = "新增成功。"
-                            result["data"] = "/"
 
-                        else:
-                            prosssigns = ProcessTask.objects.filter(processrun=myprocessrun, state="0")
-                            if len(prosssigns) <= 0:
-                                myprocesstask = ProcessTask()
-                                myprocesstask.processrun = myprocessrun
-                                myprocesstask.starttime = datetime.datetime.now()
-                                myprocesstask.type = "INFO"
-                                myprocesstask.logtype = "START"
-                                myprocesstask.state = "1"
-                                myprocesstask.senduser = request.user.username
-                                myprocesstask.content = "流程已启动。"
-                                myprocesstask.save()
-
-                                exec_process.delay(myprocessrun.id)
-                                result["res"] = "新增成功。"
-                                result["data"] = "/processindex/" + str(myprocessrun.id)
+                                    exec_process.delay(myprocessrun.id)
+                                    result["res"] = "新增成功。"
+                                    result["data"] = "/processindex/" + str(myprocessrun.id)
+                    else:
+                        result["res"] = '流程未发布，无法启动。'
         return HttpResponse(json.dumps(result))
 
 
@@ -5394,63 +5397,67 @@ def save_invitation(request):
                         if (len(curprocessrun) > 0):
                             result["res"] = '流程计划失败，有流程正在进行中，请勿重复启动。'
                         else:
-                            myprocessrun = ProcessRun()
-                            myprocessrun.process = process[0]
-                            myprocessrun.state = "PLAN"
-                            myprocessrun.starttime = datetime.datetime.now()
-                            myprocessrun.save()
-                            current_process_run_id = myprocessrun.id
+                            if process[0].state == "1":
+                                myprocessrun = ProcessRun()
+                                myprocessrun.process = process[0]
+                                myprocessrun.state = "PLAN"
+                                myprocessrun.starttime = datetime.datetime.now()
+                                myprocessrun.save()
+                                current_process_run_id = myprocessrun.id
 
-                            # 1.子流程下所有步骤都要生成对应的StepRun.
-                            mysteps = custom_all_steps(process[0])
+                                # 1.子流程下所有步骤都要生成对应的StepRun.
+                                mysteps = custom_all_steps(process[0])
 
-                            if (len(mysteps) <= 0):
-                                result["res"] = '流程启动失败，没有找到可用步骤。'
+                                if (len(mysteps) <= 0):
+                                    result["res"] = '流程启动失败，没有找到可用步骤。'
+                                else:
+                                    for step in mysteps:
+                                        mysteprun = StepRun()
+                                        mysteprun.step = step
+                                        mysteprun.processrun = myprocessrun
+                                        mysteprun.state = "EDIT"
+                                        mysteprun.save()
+
+                                        myscript = step.script_set.exclude(state="9")
+                                        for script in myscript:
+                                            myscriptrun = ScriptRun()
+                                            myscriptrun.script = script
+                                            myscriptrun.steprun = mysteprun
+                                            myscriptrun.state = "EDIT"
+                                            myscriptrun.save()
+
+                                        myverifyitems = step.verifyitems_set.exclude(state="9")
+                                        for verifyitems in myverifyitems:
+                                            myverifyitemsrun = VerifyItemsRun()
+                                            myverifyitemsrun.verify_items = verifyitems
+                                            myverifyitemsrun.steprun = mysteprun
+                                            myverifyitemsrun.save()
+
+                                # 保存邀请函
+                                current_invitation = Invitation()
+                                current_invitation.process_run_id = current_process_run_id
+                                current_invitation.start_time = start_time
+                                current_invitation.end_time = end_time
+                                current_invitation.purpose = purpose
+                                current_invitation.current_time = datetime.datetime.now()
+                                current_invitation.save()
+
+                                # 生成邀请任务信息
+                                myprocesstask = ProcessTask()
+                                myprocesstask.processrun_id = current_process_run_id
+                                myprocesstask.starttime = datetime.datetime.now()
+                                myprocesstask.senduser = request.user.username
+                                myprocesstask.type = "INFO"
+                                myprocesstask.logtype = "PLAN"
+                                myprocesstask.state = "1"
+                                myprocesstask.content = "创建演练计划。"
+                                myprocesstask.save()
+
+                                result["data"] = current_process_run_id
+                                result["res"] = "流程计划成功，待开启流程。"
                             else:
-                                for step in mysteps:
-                                    mysteprun = StepRun()
-                                    mysteprun.step = step
-                                    mysteprun.processrun = myprocessrun
-                                    mysteprun.state = "EDIT"
-                                    mysteprun.save()
-
-                                    myscript = step.script_set.exclude(state="9")
-                                    for script in myscript:
-                                        myscriptrun = ScriptRun()
-                                        myscriptrun.script = script
-                                        myscriptrun.steprun = mysteprun
-                                        myscriptrun.state = "EDIT"
-                                        myscriptrun.save()
-
-                                    myverifyitems = step.verifyitems_set.exclude(state="9")
-                                    for verifyitems in myverifyitems:
-                                        myverifyitemsrun = VerifyItemsRun()
-                                        myverifyitemsrun.verify_items = verifyitems
-                                        myverifyitemsrun.steprun = mysteprun
-                                        myverifyitemsrun.save()
-
-                            # 保存邀请函
-                            current_invitation = Invitation()
-                            current_invitation.process_run_id = current_process_run_id
-                            current_invitation.start_time = start_time
-                            current_invitation.end_time = end_time
-                            current_invitation.purpose = purpose
-                            current_invitation.current_time = datetime.datetime.now()
-                            current_invitation.save()
-
-                            # 生成邀请任务信息
-                            myprocesstask = ProcessTask()
-                            myprocesstask.processrun_id = current_process_run_id
-                            myprocesstask.starttime = datetime.datetime.now()
-                            myprocesstask.senduser = request.user.username
-                            myprocesstask.type = "INFO"
-                            myprocesstask.logtype = "PLAN"
-                            myprocesstask.state = "1"
-                            myprocesstask.content = "创建演练计划。"
-                            myprocesstask.save()
-
-                            result["data"] = current_process_run_id
-                            result["res"] = "流程计划成功，待开启流程。"
+                                print(process[0].state, type(process[0].state))
+                                result["res"] = "流程未发布，不能执行计划操作！"
             else:
                 result["res"] = "演练结束时间必须填写！"
         else:

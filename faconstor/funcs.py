@@ -439,8 +439,7 @@ def custom_wrapper_step_list(process_id):
         "8": "八.",
         "9": "九.",
     }
-    c_process = Process.objects.filter(state="1", id=process_id)
-    assert c_process[0], "流程未发布"
+    c_process = Process.objects.filter(id=process_id).exclude(state="9")
     c_process = c_process[0]
     p_steps = c_process.step_set.order_by("sort").filter(state="1", intertype__in=["node", "task", "complex"])
     wrapper_step_list = []
