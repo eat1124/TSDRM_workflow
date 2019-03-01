@@ -36,7 +36,7 @@
 ************Linux系统下，运行程序前需要安装wkhtmltopdf启动程序，用以生成pdf文件************
 1.下载地址：https://wkhtmltopdf.org/downloads.html
 2.安装依赖(ubuntu16.4为例):sudo apt-get -f install xfonts-75dpi
-3.安装wkhtmltopdf:dpkg -i wkhtmltox_0.12.5-1.xenial_amd64.deb
+3.安装wkhtmltopdf:sudo dpkg -i wkhtmltox_0.12.5-1.xenial_amd64.deb
 
 
 ************windows需要手动启用winrm服务************
