@@ -17,7 +17,7 @@ djcelery.setup_loader()
 # BROKER_URL = 'django://'
 # CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 
-BROKER_URL = 'redis://:tesunet@192.168.100.154:6379/0'
+BROKER_URL = 'redis://:tesunet@223.247.155.54:6379/0'
 # CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/1'
 # BROKER_URL = 'amqp://root:password@localhost:5672/myvhost'
 
@@ -105,7 +105,7 @@ DATABASES = {
         'NAME': 'tesudrm2',
         'USER': 'root',
         'PASSWORD': 'password',
-        'HOST': '192.168.100.154',
+        'HOST': '223.247.155.54',
         'PORT': '3306',
     }
 }
