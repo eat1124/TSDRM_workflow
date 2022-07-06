@@ -19,7 +19,7 @@ future==0.16.0
 idna==2.6
 Jinja2==2.10
 kombu==3.0.37
-lxml==4.2.3
+lxml==4.9.1
 MarkupSafe==1.0
 mysqlclient==1.3.12
 ntlm-auth==1.2.0
